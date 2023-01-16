@@ -1,13 +1,11 @@
 import {LoginInfo} from "./LoginInfo";
 import {Player} from "./Player";
 import { Line } from "./Line";
-import {BookEngine} from "../../server/src/bookEngines/BookEngine";
 
 export class BookSession {
     BookName: string;
     CreationTime: Date;
     PlayerID?: number;
-    BookEngine?: BookEngine;
 
     constructor(BookName: string) {
         this.BookName = BookName;

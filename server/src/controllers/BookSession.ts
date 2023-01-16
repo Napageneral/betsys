@@ -92,17 +92,25 @@ export async function createBookAccount(createAccountRequest: CreateAccountReque
 }
 
 export async function scrapeLines(bookSessionRequest: ScrapeLinesRequest) : Promise<ApiResponse<any>> {
-    const bookEngine = activeBookSessions.getBookSession(bookSessionRequest.BookName)
+    let bookEngine = await activeBookSessions.getBookSession(bookSessionRequest.BookName)
+    if (!bookEngine){
+        await startBookSession({
+            BookName: bookSessionRequest.BookName,
+            LogIn: false
+        })
+    }
+    bookEngine = await activeBookSessions.getBookSession(bookSessionRequest.BookName)
     if (bookEngine){
         try {
             const result = await bookEngine.scrapeLines(bookSessionRequest.Sport);
             if (result){
-                return Promise.resolve(new ApiResponse(200, ["PLACE BET SUCCESS"], []))
+                return Promise.resolve(new ApiResponse(200, ["SCRAPE LINES SUCCESS"], []))
             } else {
-                return Promise.resolve(new ApiResponse(500, ["PLACE BET FAILURE"], []))
+                return Promise.resolve(new ApiResponse(500, ["SCRAPE LINES FAILURE"], []))
             }
         } catch (e) {
-            return Promise.resolve(new ApiResponse(500, ["PLACE BET FAILURE"], [e]))
+            console.log(e)
+            return Promise.resolve(new ApiResponse(500, ["SCRAPE LINES FAILURE"], [e]))
         }
     }
     return Promise.resolve(new ApiResponse(404, ["bookSession not found"], []))

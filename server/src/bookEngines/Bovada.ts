@@ -1,6 +1,6 @@
 import {BookEngine} from "./BookEngine";
 import {By, WebElement} from "selenium-webdriver";
-import {sleep} from "../util/util";
+import {scroll_til_element_centered, sleep} from "../util/util";
 import {LoginInfo} from "../../../shared/models/LoginInfo";
 import {Line} from "../../../shared/models/Line";
 import {Player} from "../../../shared/models/Player";
@@ -39,6 +39,7 @@ export class Bovada extends BookEngine {
         if (!betButton){
             return Promise.resolve(false)
         }
+        await scroll_til_element_centered(this.driver, betButton)
         await betButton.click()
         await sleep(1000)
 
@@ -55,10 +56,9 @@ export class Bovada extends BookEngine {
             return Promise.resolve(new Map());
         }
 
-
         const lines: Map<Line, LocatableWebElement> = new Map()
-        this.scrapeMMALines(lines)
-
+        console.log("about to scrape MMA Lines")
+        await this.scrapeMMALines(lines)
 
         return Promise.resolve(lines);
     }
@@ -70,7 +70,7 @@ export class Bovada extends BookEngine {
         }
 
         await this.driver.get('https://www.bovada.lv/sports/ufc-mma')
-        await sleep(1)
+        await sleep(2000)
         let match_urls = []
         const mmaEvents : WebElement[] = await this.driver.findElements(By.css("div.grouped-events"))
         for (const mmaEvent of mmaEvents) {
@@ -81,10 +81,13 @@ export class Bovada extends BookEngine {
             }
         }
 
+        console.log(match_urls)
+
         for (const match_url of match_urls){
             const locatorStack: WebElementLocator[] = []
             await this.driver.get(match_url)
-            await sleep(1)
+            await sleep(1000)
+            console.log(match_url)
 
             const competitors : WebElement[] = await this.driver.findElements(By.css("h4.competitor-name"))
             const competitor_one : string = await competitors[0].getText()
@@ -104,6 +107,8 @@ export class Bovada extends BookEngine {
             for (let i = 0; i < markets.length; i++) {
                 const market: WebElement = markets[i]
                 locatorStack.push(new WebElementLocator(by2, i))
+                //Need to seek elements and check if they exist before proceeding
+                //Also need to check for h3.league-header which is used for Total Rounds Over/Under
                 const marketName : string = await market.findElement(By.css("h3.market-name")).getText()
                 if (marketName == "Total Rounds Over/Under"){
                     await this.scrapeTotalRoundsOverUnder(market, event_name, marketName, locatorStack, lines)

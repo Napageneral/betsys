@@ -42,7 +42,7 @@ export function listBookAccounts(listBookAccountRequest: ListBookAccountsRequest
 
 export async function updateBookAccount(updateBookAccountRequest: UpdateBookAccountRequest) : Promise<ApiResponse<any>> {
     const queryString: string = `UPDATE BookAccounts SET LoginInfo = ?, AccountBalance = ?, MarketLimits = ? WHERE PlayerID = ? AND BookName = ?`;
-    return executeSqlById(queryString, [updateBookAccountRequest.BookAccount.LoginInfo, updateBookAccountRequest.BookAccount.AccountBalance, updateBookAccountRequest.BookAccount.MarketLimits, updateBookAccountRequest.PlayerID, updateBookAccountRequest.BookName]);
+    return executeSqlById(queryString, [JSON.stringify(updateBookAccountRequest.BookAccount.LoginInfo), updateBookAccountRequest.BookAccount.AccountBalance, updateBookAccountRequest.BookAccount.MarketLimits, updateBookAccountRequest.PlayerID, updateBookAccountRequest.BookName]);
 }
 
 export async function removeBookAccount(removeBookAccountRequest: RemoveBookAccountRequest) : Promise<ApiResponse<any>>{

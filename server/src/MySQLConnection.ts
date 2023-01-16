@@ -1,7 +1,7 @@
 import {ApiResponse} from "./util/ResponseUtility";
 import {Status} from "../../shared/constants";
 
-import mysql from "mysql";
+import mysql from "mysql2";
 
 export function sqlEscape(value: any) {
     if(typeof value === 'number') {
