@@ -3,7 +3,7 @@ import {onUpdated} from "vue";
 import {ToastOptions} from "vuestic-ui";
 import axios from "axios";
 import {ApiResponse} from "@client/models/api/ApiResponse";
-import {Status} from "../../../../shared/constants";
+import {Status} from "../../../shared/constants";
 
 function loadDataHelper(runInitially: boolean, runOnUpdate: boolean, store: any, toastInit: (options: string | ToastOptions) => string | null, loadDataFunction: () => Promise<void>) {
     // Set up the function which
@@ -106,11 +106,12 @@ function getSimpleRequestNameFromUrl(url: string): string {
 
 export function handleApiPost(url: string, data: any): Promise<ApiResponse> {
     return axios.post(url, data, {
-        validateStatus: function(status) {
-            return status === 200;
-        }
+        // validateStatus: function(status) {
+        //     return status === 200;
+        // }
     }).then(
         function(response) {
+            console.log(response)
             return response.data;
         }
     ).catch(

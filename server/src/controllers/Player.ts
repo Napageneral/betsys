@@ -1,8 +1,8 @@
 import {ApiResponse} from "../util/ResponseUtility";
 import {executeSql, executeSqlById} from "../MySQLConnection";
-import {CreatePlayerRequest, Player} from "../../../shared/models/Player";
+import {AddPlayerRequest, Player} from "../../../shared/models/Player";
 
-export async function addPlayer(newPlayer: CreatePlayerRequest) : Promise<ApiResponse<any>>{
+export async function addPlayer(newPlayer: AddPlayerRequest) : Promise<ApiResponse<any>>{
     let query = `INSERT INTO Players (FirstName, LastName, SSN, HomeAddress) VALUES (?, ?, ?, ?)`;
     return executeSql(query, [newPlayer.FirstName, newPlayer.LastName, newPlayer.SSN, newPlayer.HomeAddress]);
 }

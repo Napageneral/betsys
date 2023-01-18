@@ -1,12 +1,12 @@
 import express, {Request, Response} from 'express';
 import {
-    CreatePlayerRequest,
-    GetPlayerRequest,
-    ListPlayersRequest,
-    RemovePlayerRequest, UpdatePlayerRequest
+    AddPlayerRequest, AddPlayerResponse,
+    GetPlayerRequest, GetPlayerResponse,
+    ListPlayersRequest, ListPlayersResponse,
+    RemovePlayerRequest, RemovePlayerResponse, UpdatePlayerRequest, UpdatePlayerResponse
 } from "../../../shared/models/Player";
 import {addPlayer, getPlayer, listPlayers, removePlayer, updatePlayer} from "../controllers/Player";
-import {sendExpressResponse} from "../util/ResponseUtility";
+import {sendExpressResponse, sendExpressResponseFromApiResponses} from "../util/ResponseUtility";
 
 const router = express.Router();
 
@@ -17,33 +17,47 @@ router.post( "/List", list);
 router.post( "/Update", update);
 
 async function add(req: Request, res: Response){
-    const createPlayerRequest: CreatePlayerRequest = req.body;
+    const createPlayerRequest: AddPlayerRequest = req.body;
     const output = await addPlayer(createPlayerRequest);
-    return sendExpressResponse(res, output.status, output.data, output.error);
+    const response : AddPlayerResponse = {
+        Player: output.data
+    }
+    return sendExpressResponseFromApiResponses(res, [output], response);
 }
 
 async function remove(req: Request, res: Response){
     const removePlayerRequest: RemovePlayerRequest = req.body;
     const output = await removePlayer(removePlayerRequest.PlayerID);
-    return sendExpressResponse(res, output.status, output.data, output.error);
+    const response : RemovePlayerResponse = {
+    }
+    return sendExpressResponseFromApiResponses(res, [output], response);
 }
 
 async function get(req: Request, res: Response){
     const getPlayerRequest: GetPlayerRequest = req.body;
     const output = await getPlayer(getPlayerRequest.PlayerID);
-    return sendExpressResponse(res, output.status, output.data, output.error);
+    const response : GetPlayerResponse = {
+        Player: output.data
+    }
+    return sendExpressResponseFromApiResponses(res, [output], response);
 }
 
 async function list(req: Request, res: Response){
     const listPlayersRequest: ListPlayersRequest = req.body;
     const output = await listPlayers();
-    return sendExpressResponse(res, output.status, output.data, output.error);
+    const response : ListPlayersResponse = {
+        Players: output.data
+    }
+    return sendExpressResponseFromApiResponses(res, [output], response);
 }
 
 async function update(req: Request, res: Response){
     const updatePlayerRequest: UpdatePlayerRequest = req.body;
     const output = await updatePlayer(updatePlayerRequest.PlayerID, updatePlayerRequest.Player);
-    return sendExpressResponse(res, output.status, output.data, output.error);
+    const response : UpdatePlayerResponse = {
+        Player: output.data
+    }
+    return sendExpressResponseFromApiResponses(res, [output], response);
 }
 
 export default router;

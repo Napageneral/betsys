@@ -1,4 +1,4 @@
-# ap-serving-console frontend
+# betting-system frontend
 
 This frontend server serves the UI to client browsers
 

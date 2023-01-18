@@ -1,32 +1,38 @@
-import {LoginInfo} from "./LoginInfo";
-
 export class BookAccount {
     PlayerID: number;
     BookName: string;
-    LoginInfo: LoginInfo;
+    Username: string;
+    Email: string;
+    Password: string;
     AccountBalance?: any;
     MarketLimits?: any;
 
     constructor(PlayerID: number,
                 BookName: string,
-                LoginInfo: LoginInfo,
+                Username: string,
+                Email: string,
+                Password: string,
                 AccountBalance: any,
                 MarketLimits?: any) {
         this.PlayerID = PlayerID;
         this.BookName = BookName;
-        this.LoginInfo = LoginInfo;
+        this.Username = Username;
+        this.Email = Email;
+        this.Password = Password;
         this.AccountBalance = AccountBalance;
         this.MarketLimits = MarketLimits;
     }
 }
 
-export interface CreateBookAccountRequest {
+export interface AddBookAccountRequest {
     PlayerID: number;
     BookName: string;
-    LoginInfo: LoginInfo;
+    Username: string;
+    Email: string;
+    Password: string;
 }
 
-export interface CreateBookAccountResponse {
+export interface AddBookAccountResponse {
     BookAccount: BookAccount;
 }
 

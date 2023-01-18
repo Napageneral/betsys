@@ -1,14 +1,20 @@
 import {ApiResponse} from "../util/ResponseUtility";
 import {executeSql, executeSqlById} from "../MySQLConnection";
 import {
-    CreateBookAccountRequest,
+    AddBookAccountRequest,
     GetBookAccountRequest,
     UpdateBookAccountRequest, RemoveBookAccountRequest, ListBookAccountsRequest
 } from "../../../shared/models/BookAccount";
 
-export async function addBookAccount(newBookAccount: CreateBookAccountRequest) : Promise<ApiResponse<any>>{
-    let query = `INSERT INTO BookAccounts (PlayerID, BookName, LoginInfo) VALUES (?, ?, ?)`;
-    return executeSql(query, [newBookAccount.PlayerID, newBookAccount.BookName, JSON.stringify(newBookAccount.LoginInfo)]);
+export async function addBookAccount(newBookAccount: AddBookAccountRequest) : Promise<ApiResponse<any>>{
+    let query = `INSERT INTO BookAccounts (PlayerID, BookName, Username, Password, Email, AccountBalance, MarketLimits) VALUES (?, ?, ?, ?, ?)`;
+    return executeSql(query, [newBookAccount.PlayerID,
+                                            newBookAccount.BookName,
+                                            newBookAccount.Username,
+                                            newBookAccount.Password,
+                                            newBookAccount.Email,
+                                            0,
+                                            "10000"]);
 }
 
 export async function getBookAccount(bookAccount: GetBookAccountRequest) : Promise<ApiResponse<any>> {
@@ -37,12 +43,18 @@ export function listBookAccounts(listBookAccountRequest: ListBookAccountsRequest
         query += queryConditions.map(item => `${item} = ?`).join(" AND ");
     }
 
-    return executeSql(query, []);
+    return executeSql(query, queryParams);
 }
 
 export async function updateBookAccount(updateBookAccountRequest: UpdateBookAccountRequest) : Promise<ApiResponse<any>> {
-    const queryString: string = `UPDATE BookAccounts SET LoginInfo = ?, AccountBalance = ?, MarketLimits = ? WHERE PlayerID = ? AND BookName = ?`;
-    return executeSqlById(queryString, [JSON.stringify(updateBookAccountRequest.BookAccount.LoginInfo), updateBookAccountRequest.BookAccount.AccountBalance, updateBookAccountRequest.BookAccount.MarketLimits, updateBookAccountRequest.PlayerID, updateBookAccountRequest.BookName]);
+    const queryString: string = `UPDATE BookAccounts SET Username = ?, Password = ?, Email = ?, AccountBalance = ?, MarketLimits = ? WHERE PlayerID = ? AND BookName = ?`;
+    return executeSqlById(queryString, [updateBookAccountRequest.BookAccount.Username,
+                                                    updateBookAccountRequest.BookAccount.Password,
+                                                    updateBookAccountRequest.BookAccount.Email,
+                                                    updateBookAccountRequest.BookAccount.AccountBalance,
+                                                    updateBookAccountRequest.BookAccount.MarketLimits,
+                                                    updateBookAccountRequest.PlayerID,
+                                                    updateBookAccountRequest.BookName]);
 }
 
 export async function removeBookAccount(removeBookAccountRequest: RemoveBookAccountRequest) : Promise<ApiResponse<any>>{

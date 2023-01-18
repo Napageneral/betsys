@@ -1,10 +1,10 @@
 import {BookEngine} from "./BookEngine";
-import {By, WebElement} from "selenium-webdriver";
 import {scroll_til_element_centered, sleep} from "../util/util";
 import {LoginInfo} from "../../../shared/models/LoginInfo";
 import {Line} from "../../../shared/models/Line";
 import {Player} from "../../../shared/models/Player";
 import {LocatableWebElement, WebElementLocator} from "../models/LocatableWebElement";
+import { WebElement } from "selenium-webdriver";
 
 
 export class Bovada extends BookEngine {
@@ -13,46 +13,49 @@ export class Bovada extends BookEngine {
         super("Bovada");
     }
 
-    async createAccount(player: Player, loginInfo: LoginInfo): Promise<boolean>{
+    async createAccount(player: Player, username: string, password: string, email: string): Promise<boolean>{
         return Promise.resolve(false);
     }
 
     async loginInternal(): Promise<boolean> {
-        if (!this.driver || !this.loginInfo || this.PlayerID == 0) {
+        if (!this.browser || this.PlayerID == 0) {
             return Promise.resolve(false);
         }
 
-        await this.driver.get('https://www.bovada.lv/?overlay=login')
-        await this.driver.findElement(By.css("input#email")).sendKeys(this.loginInfo.email)
-        await this.driver.findElement(By.css("input#login-password")).sendKeys(this.loginInfo.password)
-        await this.driver.findElement(By.css("button#login-submit")).click()
+        const page = await this.browser.newPage();
+        await page.goto('https://www.bovada.lv/?overlay=login')
+        await page.$("input#email").type(this.email)
+        await page.$("input#login-password").type(this.password)
+        await page.$("button#login-submit").click()
         await sleep(2000)
+
+        this.page = page;
         return Promise.resolve(true);
     }
 
     async placeBet(betButtonLocation: LocatableWebElement, stakeAmount:number): Promise<boolean> {
-        if (!this.driver){
+        if (!this.page){
             return Promise.resolve(false)
         }
 
-        const betButton: WebElement | undefined = await betButtonLocation.locateWebElement(this.driver, 1000)
+        const betButton: WebElement | undefined = await betButtonLocation.locateWebElement(this.browser, 1000)
         if (!betButton){
             return Promise.resolve(false)
         }
-        await scroll_til_element_centered(this.driver, betButton)
+        await scroll_til_element_centered(this.browser, betButton)
         await betButton.click()
         await sleep(1000)
 
-        await this.driver.findElement(By.css("default-input--risk")).sendKeys(stakeAmount)
+        await this.page.$("default-input--risk").type(stakeAmount)
         //TODO: check for limits or lack of funds
-        await this.driver.findElement(By.css( "place-bets")).click()
+        await this.page.$("place-bets").click()
         //TODO: check for success or failure
 
         return Promise.resolve(true);
     }
 
     async scrapeLines(): Promise<Map<Line, LocatableWebElement>> {
-        if (!this.driver) {
+        if (!this.browser) {
             return Promise.resolve(new Map());
         }
 
@@ -65,18 +68,18 @@ export class Bovada extends BookEngine {
 
     async scrapeMMALines(lines: Map<Line, LocatableWebElement>){
         const sport = "MMA"
-        if (!this.driver) {
+        if (!this.browser) {
             return Promise.resolve(new Map());
         }
 
-        await this.driver.get('https://www.bovada.lv/sports/ufc-mma')
+        await this.browser.get('https://www.bovada.lv/sports/ufc-mma')
         await sleep(2000)
         let match_urls = []
-        const mmaEvents : WebElement[] = await this.driver.findElements(By.css("div.grouped-events"))
+        const mmaEvents : WebElement[] = await this.browser.$$("div.grouped-events")
         for (const mmaEvent of mmaEvents) {
-            const matches: WebElement[] = await mmaEvent.findElements(By.css("sp-coupon"))
+            const matches: WebElement[] = await mmaEvent.$$("sp-coupon")
             for (const match of matches) {
-                const match_url = await match.findElement(By.css("a")).getAttribute('href')
+                const match_url = await match.$("a").getAttribute('href')
                 match_urls.push(match_url)
             }
         }
@@ -85,17 +88,17 @@ export class Bovada extends BookEngine {
 
         for (const match_url of match_urls){
             const locatorStack: WebElementLocator[] = []
-            await this.driver.get(match_url)
+            await this.browser.get(match_url)
             await sleep(1000)
             console.log(match_url)
 
-            const competitors : WebElement[] = await this.driver.findElements(By.css("h4.competitor-name"))
+            const competitors : WebElement[] = await this.browser.findElements(By.css("h4.competitor-name"))
             const competitor_one : string = await competitors[0].getText()
             const competitor_two : string = await competitors[1].getText()
             const event_name : string = competitor_one + " vs. " + competitor_two
 
             const by1: By = By.css("sp-coupon")
-            const market_containers : WebElement[] = await this.driver.findElements(by1)
+            const market_containers : WebElement[] = await this.browser.findElements(by1)
 
             locatorStack.push(new WebElementLocator(by1, 0))
             await this.scrapeMmaMatchMoneylines(market_containers[0], event_name, competitor_one, competitor_two, locatorStack, lines)
@@ -124,7 +127,7 @@ export class Bovada extends BookEngine {
                     const betButton: WebElement = await prop.findElement(by4)
                     const odds : string = await betButton.getText()
                     locatorStack.push(new WebElementLocator(by4, 0))
-                    lines.set(new Line(this.BookName, sport, event_name, marketName, betName, odds), new LocatableWebElement(await this.driver.getCurrentUrl(), locatorStack))
+                    lines.set(new Line(this.BookName, sport, event_name, marketName, betName, odds), new LocatableWebElement(await this.browser.getCurrentUrl(), locatorStack))
                     locatorStack.pop()
                     locatorStack.pop()
                 }
@@ -137,7 +140,7 @@ export class Bovada extends BookEngine {
     }
 
     async scrapeMmaMatchMoneylines(moneyLineContainer: WebElement, event_name: string, competitor_one: string, competitor_two: string, locatorStack: WebElementLocator[], lines: Map<Line, LocatableWebElement>){
-        if (!this.driver) {
+        if (!this.browser) {
             return Promise.resolve(new Map());
         }
 
@@ -146,15 +149,15 @@ export class Bovada extends BookEngine {
         const moneyline_odds_competitor_one : string = await moneyline_odds[0].getText()
         const moneyline_odds_competitor_two : string = await moneyline_odds[1].getText()
         locatorStack.push(new WebElementLocator(by, 0))
-        lines.set(new Line(this.BookName, "MMA", event_name, "moneyline", competitor_one, moneyline_odds_competitor_one), new LocatableWebElement(await this.driver.getCurrentUrl(), locatorStack))
+        lines.set(new Line(this.BookName, "MMA", event_name, "moneyline", competitor_one, moneyline_odds_competitor_one), new LocatableWebElement(await this.browser.getCurrentUrl(), locatorStack))
         locatorStack.pop()
         locatorStack.push(new WebElementLocator(by, 1))
-        lines.set(new Line(this.BookName, "MMA", event_name, "moneyline", competitor_two, moneyline_odds_competitor_two), new LocatableWebElement(await this.driver.getCurrentUrl(), locatorStack))
+        lines.set(new Line(this.BookName, "MMA", event_name, "moneyline", competitor_two, moneyline_odds_competitor_two), new LocatableWebElement(await this.browser.getCurrentUrl(), locatorStack))
         locatorStack.pop()
     }
 
     async scrapeTotalRoundsOverUnder(market: WebElement, event_name: string, marketName: string, locatorStack: WebElementLocator[], lines: Map<Line, LocatableWebElement>){
-        if (!this.driver) {
+        if (!this.browser) {
             return Promise.resolve(new Map());
         }
 
@@ -167,7 +170,7 @@ export class Bovada extends BookEngine {
             locatorStack.push(new WebElementLocator(by2, i))
             const betName : string = "Over " + (i+0.5)
             const odds : string = await overs[i].getText()
-            lines.set(new Line(this.BookName, "MMA", event_name, marketName, betName, odds), new LocatableWebElement(await this.driver.getCurrentUrl(), locatorStack))
+            lines.set(new Line(this.BookName, "MMA", event_name, marketName, betName, odds), new LocatableWebElement(await this.browser.getCurrentUrl(), locatorStack))
             locatorStack.pop()
         }
         locatorStack.pop()
@@ -177,7 +180,7 @@ export class Bovada extends BookEngine {
             locatorStack.push(new WebElementLocator(by2, i))
             const betName : string = "Under " + (i+0.5)
             const odds : string = await unders[i].getText()
-            lines.set(new Line(this.BookName, "MMA", event_name, marketName, betName, odds), new LocatableWebElement(await this.driver.getCurrentUrl(), locatorStack))
+            lines.set(new Line(this.BookName, "MMA", event_name, marketName, betName, odds), new LocatableWebElement(await this.browser.getCurrentUrl(), locatorStack))
             locatorStack.pop()
         }
         locatorStack.pop()

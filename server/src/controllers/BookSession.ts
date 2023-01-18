@@ -21,9 +21,12 @@ export const lineBetButtonMapping = new Map<number, LocatableWebElement>()
 
 export async function startBookSession(bookSessionRequest: StartSessionRequest) : Promise<ApiResponse<any>> {
     const bookEngine: BookEngine = await init(bookSessionRequest.BookName)
-    if (bookSessionRequest.LogIn && bookSessionRequest.PlayerID && bookSessionRequest.LoginInfo){
+    if (bookSessionRequest.LogIn && bookSessionRequest.PlayerID && bookSessionRequest.Password ){
         try {
-            const loginResult = await bookEngine?.login(bookSessionRequest.PlayerID, bookSessionRequest.LoginInfo);
+            const loginResult = await bookEngine?.login(bookSessionRequest.PlayerID,
+                                                        bookSessionRequest.Password,
+                                                        bookSessionRequest.Username,
+                                                        bookSessionRequest.Email);
             activeBookSessions.addLoggedInBookSession(bookSessionRequest.PlayerID, bookSessionRequest.BookName, bookEngine)
             if (loginResult){
                 return Promise.resolve(new ApiResponse(200, ["LOGIN SUCCESS"], []))
@@ -72,12 +75,17 @@ export function listBookSessions(bookSessionsRequest: ListBookSessionsRequest) :
 export async function createBookAccount(createAccountRequest: CreateAccountRequest) : Promise<ApiResponse<any>> {
     const initializedBookEngine: BookEngine = await init(createAccountRequest.BookName)
     try {
-        const result = await initializedBookEngine.createAccount(createAccountRequest.Player, createAccountRequest.LoginInfo)
+        const result = await initializedBookEngine.createAccount(createAccountRequest.Player,
+                                                                    createAccountRequest.Username,
+                                                                    createAccountRequest.Password,
+                                                                    createAccountRequest.Email)
         if (result){
             await addBookAccount({
                 PlayerID: createAccountRequest.Player.PlayerID,
                 BookName: createAccountRequest.BookName,
-                LoginInfo: createAccountRequest.LoginInfo
+                Username: createAccountRequest.Username,
+                Password: createAccountRequest.Password,
+                Email: createAccountRequest.Email
             })
             await initializedBookEngine.exitDriver()
             return Promise.resolve(new ApiResponse(200, ["ACCOUNT CREATION SUCCESS"], []))

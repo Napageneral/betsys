@@ -12,7 +12,8 @@ export async function init(BookName: string) {
             throw new Error("Unrecognized BookName: " + BookName)
     }
 
-    await bookEngine.initializeDriver()
+    // await bookEngine.initializeDriver()
+    await bookEngine.launchPuppeteer(false)
     return bookEngine
 }
 

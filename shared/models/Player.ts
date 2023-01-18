@@ -21,14 +21,14 @@ export class Player {
     }
 }
 
-export interface CreatePlayerRequest {
+export interface AddPlayerRequest {
     FirstName: string;
     LastName: string;
     SSN: string;
     HomeAddress: string;
 }
 
-export interface CreatePlayerResponse {
+export interface AddPlayerResponse {
     Player: Player;
 }
 

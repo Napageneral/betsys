@@ -1,4 +1,3 @@
-import {LoginInfo} from "./LoginInfo";
 import {Player} from "./Player";
 import { Line } from "./Line";
 
@@ -17,7 +16,9 @@ export interface StartSessionRequest {
     BookName: string;
     LogIn: boolean;
     PlayerID?: number;
-    LoginInfo?: LoginInfo;
+    Username?: string;
+    Email?: string;
+    Password?: string;
 }
 
 export interface StartSessionResponse {
@@ -61,7 +62,9 @@ export interface GetBookSessionResponse {
 export interface CreateAccountRequest {
     BookName: string;
     Player: Player;
-    LoginInfo: LoginInfo;
+    Username: string;
+    Email: string;
+    Password: string;
 }
 
 export interface CreateAccountResponse {

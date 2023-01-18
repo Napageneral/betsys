@@ -1,32 +1,9 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from "vue-router";
 import {setUpGlobalToasts} from "@client/utilities/utilities";
 import {useToast} from "vuestic-ui";
-import {useStore} from "@client/stores/api/config/ConfigStore";
-import {provide, Ref, ref} from "vue";
-import axios from "axios";
-import {Api} from "@client/constants/constants";
 
 const toast = useToast();
-const store = useStore();
-
-store.fetchUserData();
-
-// provide consoleEnv to be used in all child components (whole app)
-const envRef = ref("dev");
-provide<Ref<string>>("consoleEnv", envRef);
-axios.get(Api.Host + "/api/stage").then((response) => {
-  if(response?.data?.stage !== undefined) {
-    envRef.value = response.data.stage;
-  }
-});
-
 setUpGlobalToasts(toast);
-
-const didLoad = ref(true);
-function loadError() {
-  didLoad.value = false;
-}
 
 </script>
 

@@ -21,6 +21,9 @@
     "mysql2": "^3.0.1",
     "node-cache": "^5.1.2",
     "node-cron": "^3.0.2",
+    "puppeteer": "^19.5.2",
+    "puppeteer-extra": "^3.3.4",
+    "puppeteer-extra-plugin-stealth": "^2.11.1",
     "selenium-webdriver": "^4.7.1"
   },
   "devDependencies": {
