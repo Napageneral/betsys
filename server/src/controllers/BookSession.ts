@@ -13,11 +13,11 @@ import {BookEngine} from "../bookEngines/BookEngine";
 import {ActiveBookSessions} from "../ActiveBookSessions";
 import {init} from "../bookEngines/BookEngineFactory";
 
-import {LocatableWebElement} from "../models/LocatableWebElement";
 import {addBookAccount} from "../controllers/BookAccount";
+import {LocatableElementHandle} from "LocatableElementHandle";
 
 const activeBookSessions = new ActiveBookSessions();
-export const lineBetButtonMapping = new Map<number, LocatableWebElement>()
+export const lineBetButtonMapping = new Map<string, LocatableElementHandle>()
 
 export async function startBookSession(bookSessionRequest: StartSessionRequest) : Promise<ApiResponse<any>> {
     const bookEngine: BookEngine = await init(bookSessionRequest.BookName)
@@ -128,7 +128,7 @@ export async function placeBet(bookSessionRequest: PlaceBetRequest) : Promise<Ap
     const bookEngine = activeBookSessions.getBookSession(bookSessionRequest.BookName, bookSessionRequest.PlayerID)
     if (bookEngine){
         try {
-            const betButton = lineBetButtonMapping.get(bookSessionRequest.Line.LineID)
+            const betButton = lineBetButtonMapping.get(bookSessionRequest.Odd.OddID)
             if (betButton){
                 const result = await bookEngine?.placeBet(betButton, bookSessionRequest.StakeAmount);
                 if (result){

@@ -3,17 +3,18 @@
 import {inject, Ref, ref} from "vue";
 import {useToast} from "vuestic-ui";
 import {addBookAccount, updateBookAccount} from "@client/actions/BookAccount";
-import {BookAccount} from "@shared/models/BookAccount";
 import {Status} from "@shared/constants";
 
   const toast = useToast();
 
   const props = defineProps<{
     mode: "Create" | "Update",
-    PlayerID?: string,
+    playerid: string,
     BookName?: string,
     AccountBalance?: number,
-    LoginInfo?: string,
+    Username?: string,
+    Password?: string,
+    Email?: string,
     MarketLimits?: string,
     disabled?: boolean
   }>();
@@ -27,40 +28,16 @@ import {Status} from "@shared/constants";
     showModal.value = true;
   }
 
-  const BookAccounts = inject<Ref<BookAccount[] | undefined>>('BookAccounts', ref());
-
-  const PlayerIDRef = ref(props.PlayerID ?? 0);
   const BookNameRef = ref(props.BookName ?? "");
   const AccountBalanceRef = ref(props.AccountBalance ?? "");
-  const LoginInfoRef = ref(props.LoginInfo ?? "");
+  const UsernameRef = ref(props.Username ?? "");
+  const PasswordRef = ref(props.Password ?? "");
+  const EmailRef = ref(props.Email ?? "");
   const MarketLimitsRef = ref(props.MarketLimits ?? "");
 
-  const nameConstraints = (props.mode === 'Create')? [
-    makeStringLengthBoundsConstraint(1, 64),
-    isBookNameUnique
-  ] : [];
-
-
-  function makeStringLengthBoundsConstraint(lower: number, upper: number): (value: string) => true | string {
-    return function(value: string): true | string {
-      return (value.length >= lower && value.length <= upper)? true : `Number of characters must be in range [${lower}-${upper}]`;
-    }
-  }
-
-  function isBookNameUnique(bookName: string): true | string {
-    if(BookAccounts.value === undefined) {
-      return "Can't verify uniqueness due to connection issues";
-    }
-    for(const BookAccount of BookAccounts.value) {
-      if(BookAccount.BookName === bookName) {
-        return "BookName must be unique";
-      }
-    }
-    return true;
-  }
 
   async function createThenClose(closeCallback: () => any) {
-    const result = await addBookAccount(Number(PlayerIDRef.value), BookNameRef.value, LoginInfoRef.value).promise;
+    const result = await addBookAccount(Number(props.playerid), BookNameRef.value, UsernameRef.value, EmailRef.value, PasswordRef.value).promise;
     let failed = false;
 
     // make sure the BookAccount was created successfully
@@ -88,13 +65,16 @@ import {Status} from "@shared/constants";
 
   function updateThenClose(closeCallback: () => any) {
     updateBookAccount(
-        BookAccountIDRef.value,
+        Number(props.playerid),
+        BookNameRef.value,
         {
-          BookAccountID: BookAccountIDRef.value,
-          FirstName: firstNameRef.value,
-          LastName: lastNameRef.value,
-          HomeAddress: homeAddressRef.value,
-          SSN: SSNRef.value
+          PlayerID: Number(props.playerid),
+          BookName: BookNameRef.value,
+          Username: UsernameRef.value,
+          Email: EmailRef.value,
+          Password: PasswordRef.value,
+          AccountBalance: AccountBalanceRef.value,
+          MarketLimits: MarketLimitsRef.value
         }
     ).promise.then(function(result) {
       if(result.data) {
@@ -118,14 +98,7 @@ import {Status} from "@shared/constants";
 
   function validate(): boolean {
     // make sure all the form rules are met
-    if(!formRef.value?.validate()) {
-      return false;
-    }
-    // make sure the BookAccount has changed, if not, then there is no update to make
-    if(props.mode === 'Update' && props.homeAddress === homeAddressRef.value) {
-      return false;
-    }
-    return true;
+    return formRef.value?.validate();
   }
 
   function actionThenClose(closeCallback: () => any) {
@@ -167,25 +140,20 @@ import {Status} from "@shared/constants";
           <va-form ref="formRef">
             <div class="aa-flex-col aa-pad-children">
               <va-input
-                  v-model="firstNameRef"
-                  label="First Name"
-                  :rules="nameConstraints"
+                  v-model="BookNameRef"
+                  label="Book Name"
               />
               <va-input
-                  v-model="lastNameRef"
-                  label="Last Name"
-                  :rules="nameConstraints"
+                  v-model="UsernameRef"
+                  label="Username"
               />
               <va-input
-                  v-model="homeAddressRef"
-                  label="Home Address"
-                  type="textarea"
-                  autosize
+                  v-model="PasswordRef"
+                  label="Password"
               />
               <va-input
-                  v-model="SSNRef"
-                  label="SSN"
-                  :rules="SSNConstraints"
+                  v-model="EmailRef"
+                  label="Email"
               />
             </div>
           </va-form>

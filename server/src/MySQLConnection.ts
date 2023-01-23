@@ -34,8 +34,8 @@ export async function executeSqlById(queryString: string, queryParams: Array<Obj
                 resolve(new ApiResponse(200, res, err));
             } else {
                 // not found with the id
-                console.log("item not found");
-                console.log("error: ", err);
+                // console.log("item not found");
+                // console.log("error: ", err);
                 resolve(new ApiResponse(404, res, err));
             }
         });

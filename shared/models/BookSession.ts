@@ -1,5 +1,5 @@
 import {Player} from "./Player";
-import { Line } from "./Line";
+import {Odd} from "./Odd";
 
 export class BookSession {
     BookName: string;
@@ -81,7 +81,7 @@ export interface ScrapeLinesResponse {
 export interface PlaceBetRequest {
     PlayerID: number;
     BookName: string;
-    Line: Line;
+    Odd: Odd;
     StakeAmount: number;
 }
 

@@ -1,3 +1,4 @@
+import { ElementHandle, Page } from "puppeteer";
 import {WebDriver, WebElement} from "selenium-webdriver";
 
 export async function scroll_til_element_centered(driver:WebDriver, element:WebElement) : Promise<void>{
@@ -12,4 +13,27 @@ export async function scroll_til_element_centered(driver:WebDriver, element:WebE
 
 export function sleep(ms:number) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export async function getText(page: Page,  elementHandle: ElementHandle){
+    return await page.evaluate(function (el:any) {
+        return el.textContent;
+    }, elementHandle)
+}
+
+export function sliceIntoChunks(arr: any[], chunkSize: number) {
+    const res = [];
+    for (let i = 0; i < arr.length; i += chunkSize) {
+        const chunk = arr.slice(i, i + chunkSize);
+        res.push(chunk);
+    }
+    return res;
+}
+
+export function getHourDiff(timestamp: Date){
+    const now = new Date()
+    const gameStart = new Date(timestamp)
+    const diff = now.getTime() - gameStart.getTime()
+    const hourDiff = Math.floor(diff/1000/60/60);
+    return hourDiff
 }

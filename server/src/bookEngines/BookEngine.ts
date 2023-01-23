@@ -1,10 +1,9 @@
 import {Builder, WebDriver} from "selenium-webdriver";
-import {LoginInfo} from "../../../shared/models/LoginInfo";
-import {Line} from "../../../shared/models/Line";
 import {Player} from "../../../shared/models/Player";
-import {LocatableWebElement} from "../models/LocatableWebElement";
 import puppeteer from 'puppeteer-extra'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
+import {LocatableElementHandle} from "LocatableElementHandle";
+import {Odd} from "../../../shared/models/Odd";
 
 let chrome = require("selenium-webdriver/chrome");
 
@@ -73,8 +72,8 @@ export abstract class BookEngine {
     }
     abstract loginInternal(): Promise<boolean>;
 
-    abstract scrapeLines(sport?:string): Promise<Map<Line, LocatableWebElement>>;
-    abstract placeBet(betButton:LocatableWebElement, stakeAmount:number): Promise<boolean>;
+    abstract scrapeLines(sport?:string): Promise<Map<Odd, LocatableElementHandle>>;
+    abstract placeBet(betButton:LocatableElementHandle, stakeAmount:number): Promise<boolean>;
 
 }
 

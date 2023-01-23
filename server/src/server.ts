@@ -8,6 +8,7 @@ import {SERVER_PORT} from "../../shared/constants";
 import playerRoutes from "./routes/Player"
 import bookAccountRoutes from "./routes/BookAccount"
 import bookSessionRoutes from "./routes/BookSession"
+import {completeGamesAndGradeBets, pullOddsJamData} from "./cronJobs/oddsJam";
 
 const app = express();
 
@@ -20,6 +21,9 @@ app.use('/Player', playerRoutes);
 app.use('/BookAccount', bookAccountRoutes);
 app.use('/BookSession', bookSessionRoutes);
 
+
+cron.schedule("0 * * * *", pullOddsJamData);
+cron.schedule("10 * * * *", completeGamesAndGradeBets);
 
 // begin listening for requests to pass into the installed handlers
 app.listen(SERVER_PORT, () => {

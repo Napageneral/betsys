@@ -7,7 +7,7 @@ import {
 } from "../../../shared/models/BookAccount";
 
 export async function addBookAccount(newBookAccount: AddBookAccountRequest) : Promise<ApiResponse<any>>{
-    let query = `INSERT INTO BookAccounts (PlayerID, BookName, Username, Password, Email, AccountBalance, MarketLimits) VALUES (?, ?, ?, ?, ?)`;
+    let query = `INSERT INTO BookAccounts (PlayerID, BookName, Username, Password, Email, AccountBalance, MarketLimits) VALUES (?, ?, ?, ?, ?, ?, ?)`;
     return executeSql(query, [newBookAccount.PlayerID,
                                             newBookAccount.BookName,
                                             newBookAccount.Username,

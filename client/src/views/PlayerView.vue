@@ -40,7 +40,7 @@ function reloadBookAccounts() {
   <BreadcrumbNavigator :routeParams="route.params"/>
   <TabManager :tabs="['BookAccounts']" class="padded-holder">
     <template #BookAccounts>
-      <BookAccountDataTable :getData="getBookAccounts" @reloadConfigs="reloadBookAccounts"/>
+      <BookAccountDataTable :player-i-d="playerID" :getData="getBookAccounts" @reloadConfigs="reloadBookAccounts"/>
     </template>
   </TabManager>
 </template>

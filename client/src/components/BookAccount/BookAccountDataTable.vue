@@ -2,16 +2,11 @@
 <script setup lang="ts">
 
 import {BookAccount} from "@shared/models/BookAccount";
-  import {ComputedRef, computed} from "vue";
-import {useRoute, useRouter} from "vue-router";
-  import CreateBookAccountModal from "@client/components/BookAccount/CreateBookAccountModal.vue";
-
-  const router = useRouter();
-
-  const route = useRoute();
-  const playerID = route.params.playerID as string;
+import {ComputedRef, computed} from "vue";
+import CreateBookAccountModal from "@client/components/BookAccount/CreateBookAccountModal.vue";
 
   const props = defineProps<{
+    playerID: string,
     getData: () => ComputedRef<BookAccount[] | undefined>
   }>();
 
@@ -29,6 +24,7 @@ import {useRoute, useRouter} from "vue-router";
   ];
 
   const BookAccountRows = computed(function() {
+    console.log("playerID prop", props.playerID)
     return props.getData().value;
   });
 
@@ -36,24 +32,18 @@ import {useRoute, useRouter} from "vue-router";
     emit("reloadBookAccounts");
   }
 
-function navigateToBookAccount(rowClickEmit: any) {
-  router.push(`Player/${playerID}/BookAccount/${rowClickEmit.item.BookAccountID}`);
-}
-
 </script>
 
 <template>
   <div class="aa-flex-row">
     <div/> <!-- align-right fix -->
     Add BookAccount
-    <CreateBookAccountModal mode="Create" size="small" class="aa-align-right aa-flex-smallify" @reloadConfigs="reloadBookAccounts"/>
+    <CreateBookAccountModal mode="Create" size="small" class="aa-align-right aa-flex-smallify" :playerid="props.playerID" @reloadConfigs="reloadBookAccounts"/>
   </div>
   <va-data-table
       :items="BookAccountRows"
       :columns="columns"
       :hoverable="true"
-      :clickable="true"
-      @row:click="navigateToBookAccount"
       striped
   >
     <template #cell(LocationUri)="{ value }">

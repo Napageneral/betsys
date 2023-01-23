@@ -29,12 +29,14 @@ export function listBookAccounts(PlayerID?: number, BookName?: string): ActionDa
     };
 }
 
-export function addBookAccount(playerID: number, bookName: string, loginInfo: LoginInfo): ActionData<BookAccount> {
+export function addBookAccount(playerID: number, bookName: string, username: string, email: string, password: string): ActionData<BookAccount> {
 
     const addBookAccountInput : AddBookAccountRequest = {
         PlayerID: playerID,
         BookName: bookName,
-        LoginInfo: loginInfo
+        Username: username,
+        Email: email,
+        Password: password
     }
     const BookAccount = ref()
     const promise = handleApiPost(BOOKACCOUNT_PATH + ActionType.Add, addBookAccountInput).then((result)=>{
