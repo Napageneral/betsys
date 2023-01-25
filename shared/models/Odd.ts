@@ -3,6 +3,7 @@ export class Odd {
     GameID: string
     PropID: string;
     OddID: string;
+    tMinus: number;
     BookName: string;
     Price: number;
     RetrievalTimestamp: Date;
@@ -10,12 +11,14 @@ export class Odd {
     constructor(GameID: string,
                 PropID: string,
                 OddID: string,
+                tMinus: number,
                 BookName: string,
                 Price: number,
                 RetrievalTimestamp: Date) {
         this.GameID = GameID
         this.PropID = PropID
         this.OddID = OddID;
+        this.tMinus = tMinus;
         this.BookName = BookName;
         this.Price = Price
         this.RetrievalTimestamp = RetrievalTimestamp
@@ -27,6 +30,7 @@ export interface AddOddRequest {
     GameID: string;
     PropID: string;
     OddID: string;
+    tMinus: number;
     BookName: string;
     Price: number;
     RetrievalTimestamp: Date;
@@ -54,6 +58,7 @@ export interface GetOddResponse {
 export interface ListOddsRequest {
     GameID?: string;
     PropID?: string;
+    tMinus?: number;
     BookName?: string;
 }
 

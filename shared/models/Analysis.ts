@@ -1,43 +1,30 @@
 
 export class Analysis {
     AnalysisID: string;
+    Name: string;
+    BucketCount: number;
+    Sportsbook: string;
     Sport: string;
-    League: string;
-    StartDate: Date;
-    HomeTeam: string;
-    AwayTeam: string;
-    Status: string;
-    Tournament: string;
 
     constructor(AnalysisID: string,
-                Sport: string,
-                League: string,
-                StartDate: Date,
-                HomeTeam: string,
-                AwayTeam: string,
-                Status: string,
-                Tournament: string) {
+                Name: string,
+                BucketCount: number,
+                Sportsbook: string,
+                Sport: string) {
         this.AnalysisID = AnalysisID
+        this.Name = Name;
+        this.BucketCount = BucketCount;
+        this.Sportsbook = Sportsbook;
         this.Sport = Sport;
-        this.League = League;
-        this.StartDate = StartDate;
-        this.HomeTeam = HomeTeam;
-        this.AwayTeam = AwayTeam;
-        this.Status = Status;
-        this.Tournament = Tournament;
     }
 
 }
 
 export interface AddAnalysisRequest {
-    AnalysisID: string;
+    Name: string;
+    BucketCount: number;
+    Sportsbook: string;
     Sport: string;
-    League: string;
-    StartDate: Date;
-    HomeTeam: string;
-    AwayTeam: string;
-    Status: string;
-    Tournament: string;
 }
 
 export interface AddAnalysisResponse {
@@ -59,15 +46,13 @@ export interface GetAnalysisResponse {
     Analysis: Analysis;
 }
 
-export interface ListAnalysissRequest {
+export interface ListAnalysesRequest {
+    Sportsbook?: string;
     Sport?: string;
-    League?: string;
-    Status?: string;
-    Tournament?: string;
 }
 
-export interface ListAnalysissResponse {
-    Analysiss: Array<Analysis>;
+export interface ListAnalysesResponse {
+    Analyses: Array<Analysis>;
 }
 
 export interface UpdateAnalysisRequest {

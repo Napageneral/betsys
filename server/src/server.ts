@@ -21,6 +21,8 @@ app.use('/Player', playerRoutes);
 app.use('/BookAccount', bookAccountRoutes);
 app.use('/BookSession', bookSessionRoutes);
 
+// pullOddsJamData()
+// completeGamesAndGradeBets()
 
 cron.schedule("0 * * * *", pullOddsJamData);
 cron.schedule("10 * * * *", completeGamesAndGradeBets);

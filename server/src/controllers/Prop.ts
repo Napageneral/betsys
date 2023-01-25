@@ -3,9 +3,14 @@ import {executeSql, executeSqlById} from "../MySQLConnection";
 import {AddPropRequest, Prop, ListPropsRequest} from "../../../shared/models/Prop";
 
 export async function addProp(newProp: AddPropRequest) : Promise<ApiResponse<any>>{
-    let query = `INSERT INTO Props (GameID, PropID, Market, PropName, PropResult, PropPoints) VALUES (?, ?, ?, ?, ?, ?)`;
+    let query = `INSERT IGNORE INTO Props (GameID, PropID, Market, PropName, PropResult, PropPoints) VALUES (?, ?, ?, ?, ?, ?)`;
     return executeSql(query, [newProp.GameID, newProp.PropID, newProp.Market, newProp.PropName,
         newProp.PropResult, newProp.PropPoints]);
+}
+
+export async function addProps(newProps: Prop[]) : Promise<ApiResponse<any>>{
+    let query = `INSERT IGNORE INTO Props (GameID, PropID, Market, PropName, PropResult, PropPoints) VALUES ?`;
+    return executeSql(query, [newProps.map(prop => [prop.GameID, prop.PropID, prop.Market, prop.PropName, prop.PropResult, prop.PropPoints])]);
 }
 
 export async function getProp(PropID: string) : Promise<ApiResponse<any>> {
@@ -14,9 +19,15 @@ export async function getProp(PropID: string) : Promise<ApiResponse<any>> {
 }
 
 export function listProps(request: ListPropsRequest) : Promise<ApiResponse<any>>{
-    let queryHead = "SELECT * FROM Props";
+    let queryHead;
+    if (request.IDsOnly) {
+        queryHead = "SELECT PropID FROM Props";
+    } else {
+        queryHead = "SELECT * FROM Props";
+    }
     let queryConditions: string[] = [];
     let queryParams: any[] = [];
+
 
     if (request.GameID) {
         queryConditions.push("GameID");
@@ -32,6 +43,11 @@ export function listProps(request: ListPropsRequest) : Promise<ApiResponse<any>>
     if(queryConditions.length > 0) {
         query += " WHERE ";
         query += queryConditions.map(item => `${item} = ?`).join(" AND ");
+    }
+    if(request.GameIDs) {
+        query += " WHERE GameID IN (";
+        query += request.GameIDs.join(",");
+        query += " )";
     }
 
     return executeSql(query, queryParams);

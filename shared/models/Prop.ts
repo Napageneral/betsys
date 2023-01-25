@@ -52,6 +52,8 @@ export interface GetPropResponse {
 }
 
 export interface ListPropsRequest {
+    GameIDs?: string[];
+    IDsOnly?: boolean;
     GameID?: string;
     Market?: string;
 }

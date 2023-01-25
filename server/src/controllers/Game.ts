@@ -8,13 +8,24 @@ export async function addGame(newGame: AddGameRequest) : Promise<ApiResponse<any
                                             newGame.HomeTeam, newGame.AwayTeam, newGame.Status, newGame.Tournament]);
 }
 
+export async function addGames(newGames: Game[]) : Promise<ApiResponse<any>>{
+    let query = `INSERT IGNORE INTO Games (GameID, Sport, League, StartDate, HomeTeam, AwayTeam, Status, Tournament) VALUES ?`;
+    return executeSql(query, [newGames.map(newGame => [newGame.GameID, newGame.Sport, newGame.League, newGame.StartDate,
+                            newGame.HomeTeam, newGame.AwayTeam, newGame.Status, newGame.Tournament])]);
+}
+
 export async function getGame(GameID: string) : Promise<ApiResponse<any>> {
     const queryString: string = `SELECT * FROM Games WHERE GameID = ?`;
     return executeSqlById(queryString, [GameID]);
 }
 
 export function listGames(request: ListGamesRequest) : Promise<ApiResponse<any>>{
-    let queryHead = "SELECT * FROM Games";
+    let queryHead;
+    if (request.IDsOnly) {
+        queryHead = "SELECT GameID FROM Games";
+    } else {
+        queryHead = "SELECT * FROM Games";
+    }
     let queryConditions: string[] = [];
     let queryParams: any[] = [];
 

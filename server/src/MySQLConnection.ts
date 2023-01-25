@@ -44,9 +44,17 @@ export async function executeSqlById(queryString: string, queryParams: Array<Obj
 
 
 export const sql: mysql.Connection = mysql.createConnection({
-    host: "localhost",
+    host: "swackhammer.cluster-cpwwwrivdbt4.us-east-1.rds.amazonaws.com",
     port: 3306,
-    user: "root",
-    password: "password",
+    user: "betsys_admin",
+    password: "Ollyollyoxenfree!1",
     database: "betting"
 });
+
+// export const sql: mysql.Connection = mysql.createConnection({
+//     host: "localhost",
+//     port: 3306,
+//     user: "root",
+//     password: "password",
+//     database: "betting"
+// });

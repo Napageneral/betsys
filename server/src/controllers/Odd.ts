@@ -3,9 +3,14 @@ import {executeSql, executeSqlById} from "../MySQLConnection";
 import {AddOddRequest, Odd, ListOddsRequest} from "../../../shared/models/Odd";
 
 export async function addOdd(newOdd: AddOddRequest) : Promise<ApiResponse<any>>{
-    let query = `INSERT INTO Odds (GameID, PropID, OddID, BookName, Price, RetrievalTimestamp) VALUES (?, ?, ?, ?, ?, ?)`;
-    return executeSql(query, [newOdd.GameID, newOdd.PropID, newOdd.OddID, newOdd.BookName,
+    let query = `INSERT IGNORE INTO Odds (GameID, PropID, OddID, tMinus, BookName, Price, RetrievalTimestamp) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+    return executeSql(query, [newOdd.GameID, newOdd.PropID, newOdd.OddID, newOdd.tMinus, newOdd.BookName,
         newOdd.Price, newOdd.RetrievalTimestamp]);
+}
+
+export async function addOdds(newOdds: Odd[]) : Promise<ApiResponse<any>>{
+    let query = `INSERT IGNORE INTO Odds (GameID, PropID, OddID, tMinus, BookName, Price, RetrievalTimestamp) VALUES ?`;
+    return executeSql(query, [newOdds.map(Odd => [Odd.GameID, Odd.PropID, Odd.OddID, Odd.tMinus, Odd.BookName, Odd.Price, Odd.RetrievalTimestamp])]);
 }
 
 export async function getOdd(OddID: string) : Promise<ApiResponse<any>> {

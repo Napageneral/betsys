@@ -60,6 +60,7 @@ export interface GetGameResponse {
 }
 
 export interface ListGamesRequest {
+    IDsOnly?: boolean
     Sport?: string;
     League?: string;
     Status?: string;
