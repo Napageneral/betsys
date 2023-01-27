@@ -12,7 +12,6 @@ export function sendExpressResponse<T>(expressResponse: Response, status: number
 }
 
 export function sendExpressResponseFromApiResponses<T>(res: Response, apiResponses : Array<ApiResponse<any>>, returnData: T) : Response {
-    const LOGGER = res.locals.logger;
     if (apiResponses){
         let responseData = []
         let responseStatuses = []
@@ -28,18 +27,15 @@ export function sendExpressResponseFromApiResponses<T>(res: Response, apiRespons
                 console.log("error:", apiResponse.error)
                 responseErrors.push(apiResponse.error);
                 hasErrors = true;
-                LOGGER.error("Api responded with error", apiResponse.error);
             }
             if (apiResponse?.status == 404){
                 console.log("status:", apiResponse.status)
                 responseErrors.push("404 Resource Not Found");
                 notFound = true;
-                LOGGER.error("Api 404");
             }
         }
-
         if (hasErrors) {
-            LOGGER.error(`failure: ${JSON.stringify(responseErrors, null, '\t')}`);
+            console.log(`failure: ${JSON.stringify(responseErrors, null, '\t')}`);
             return sendExpressResponse(res, Status.Failure, responseData, responseErrors);
         }
         if (notFound) {

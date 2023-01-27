@@ -1,26 +1,25 @@
 import {ApiResponse, sendExpressResponseFromApiResponses} from "../util/ResponseUtility";
-import {executeSql, executeSqlById} from "../MySQLConnection";
+import {executeSql, executeSqlById} from "../db/postgresql";
 import {
     AddAnalysisRequest,
     GetAnalysisRequest,
     UpdateAnalysisRequest, RemoveAnalysisRequest, ListAnalysesRequest, Analysis
 } from "../../../shared/models/Analysis";
-import {addAnalysisBucket, addAnalysisBuckets} from "AnalysisBucket";
-import {Status} from "../../../shared/constants";
+import {addAnalysisBucket, addAnalysisBuckets} from "./AnalysisBucket";
 import {AnalysisBucket} from "../../../shared/models/AnalysisBucket";
 
 
 export async function createAnalysis(newAnalysis: AddAnalysisRequest) : Promise<ApiResponse<any>>{
     const addAnalysisResponse = await addAnalysis(newAnalysis)
-    const analysis: Analysis = addAnalysisResponse.data
+    const analysisID: number = addAnalysisResponse.data.insertId
 
     const analysisBuckets: AnalysisBucket[] = []
-    for (let i = 0; i < analysis.BucketCount; i++) {
+    for (let i = 0; i < newAnalysis.BucketCount; i++) {
         for (let j = 0; j < 720; j++) {
 
-            const rangeMin = i * (100/analysis.BucketCount)
-            const rangeMax = ((i+1) * (100/analysis.BucketCount))-0.001
-            const ab = new AnalysisBucket(analysis.AnalysisID, i, -j, rangeMin, rangeMax, 0, 0, 0)
+            const rangeMin = i * (100/newAnalysis.BucketCount)
+            const rangeMax = ((i+1) * (100/newAnalysis.BucketCount))-0.001
+            const ab = new AnalysisBucket(analysisID, i, -j, rangeMin, rangeMax, 0, 0, 0)
             analysisBuckets.push(ab)
         }
     }

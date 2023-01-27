@@ -38,6 +38,12 @@ export function getHourDiff(timestamp: Date){
     return hourDiff
 }
 
+export function getTimeDiff(timestamp: Date){
+    const now = new Date()
+    const gameStart = new Date(timestamp)
+    return now.getTime() - gameStart.getTime()
+}
+
 export function shallowEqual(object1:any, object2:any) {
     const keys1 = Object.keys(object1);
     const keys2 = Object.keys(object2);

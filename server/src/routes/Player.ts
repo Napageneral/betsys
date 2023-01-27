@@ -6,7 +6,7 @@ import {
     RemovePlayerRequest, RemovePlayerResponse, UpdatePlayerRequest, UpdatePlayerResponse
 } from "../../../shared/models/Player";
 import {addPlayer, getPlayer, listPlayers, removePlayer, updatePlayer} from "../controllers/Player";
-import {sendExpressResponse, sendExpressResponseFromApiResponses} from "../util/ResponseUtility";
+import {sendExpressResponseFromApiResponses} from "../util/ResponseUtility";
 
 const router = express.Router();
 
@@ -20,7 +20,13 @@ async function add(req: Request, res: Response){
     const createPlayerRequest: AddPlayerRequest = req.body;
     const output = await addPlayer(createPlayerRequest);
     const response : AddPlayerResponse = {
-        Player: output.data
+        Player: {
+            PlayerID: output.data.rows[0].PlayerID,
+            FirstName: createPlayerRequest.FirstName,
+            LastName: createPlayerRequest.LastName,
+            HomeAddress: createPlayerRequest.HomeAddress,
+            SSN: createPlayerRequest.SSN
+        }
     }
     return sendExpressResponseFromApiResponses(res, [output], response);
 }
@@ -37,7 +43,7 @@ async function get(req: Request, res: Response){
     const getPlayerRequest: GetPlayerRequest = req.body;
     const output = await getPlayer(getPlayerRequest.PlayerID);
     const response : GetPlayerResponse = {
-        Player: output.data
+        Player: output.data[0]
     }
     return sendExpressResponseFromApiResponses(res, [output], response);
 }
@@ -46,7 +52,7 @@ async function list(req: Request, res: Response){
     const listPlayersRequest: ListPlayersRequest = req.body;
     const output = await listPlayers();
     const response : ListPlayersResponse = {
-        Players: output.data
+        Players: output.data.rows
     }
     return sendExpressResponseFromApiResponses(res, [output], response);
 }
@@ -54,8 +60,9 @@ async function list(req: Request, res: Response){
 async function update(req: Request, res: Response){
     const updatePlayerRequest: UpdatePlayerRequest = req.body;
     const output = await updatePlayer(updatePlayerRequest.PlayerID, updatePlayerRequest.Player);
+
     const response : UpdatePlayerResponse = {
-        Player: output.data
+        Player: updatePlayerRequest.Player
     }
     return sendExpressResponseFromApiResponses(res, [output], response);
 }

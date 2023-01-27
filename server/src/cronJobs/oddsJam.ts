@@ -4,25 +4,33 @@ import {addGames, listGames, updateGame} from "../controllers/Game";
 import {sportsbooks} from "../../../shared/constants";
 import {Odd} from "../../../shared/models/Odd";
 import {Prop} from "../../../shared/models/Prop";
-import {addProps, listProps, updateProp} from "../controllers/Prop";
+import {addProps, listProps, updateProp, updatePropResults} from "../controllers/Prop";
 import {addOdds} from "../controllers/Odd";
-import {getHourDiff, shallowEqual, sliceIntoChunks} from "../util/util";
+import {getHourDiff, getTimeDiff, shallowEqual, sliceIntoChunks} from "../util/util";
 
 export async function completeGamesAndGradeBets(){
-    const liveGames = await listGames({
+    var startTime = performance.now()
+    const liveGamesResponse = await listGames({
         Status: "live"
     })
+    const liveGames: Game[] = liveGamesResponse.data.rows
+    console.log("# of live games: " + liveGames.length)
 
-    console.log("# of live games: " + liveGames.data.length)
-
-    for (const game of liveGames.data as Game[]){
+    let num_props_updated = 0
+    let num_props_failed = 0
+    for (const game of liveGames as Game[]){
         const hourDiff = getHourDiff(game.StartDate)
         if (hourDiff > 6){
             game.Status = "complete"
             await updateGame(game.GameID, game)
 
             const props = await listProps({GameID:game.GameID})
-            for (const prop of props.data as Prop[]){
+            if (props.data == undefined || props.data.rows.length == 0){
+                continue
+            }
+            num_props_updated += props.data.rows.length
+            let propsToUpdate = []
+            for (const prop of props.data.rows as Prop[]){
                 try{
                     const gradeResponse = await oddsJamApi.gradeBet({
                         sport: game.Sport,
@@ -31,16 +39,20 @@ export async function completeGamesAndGradeBets(){
                         market_name: prop.Market,
                         bet_name: prop.PropName
                     })
-                    console.log(gradeResponse)
-                    prop.PropResult = gradeResponse.data.betResult
-
-                    await updateProp(prop.PropID, prop)
+                    propsToUpdate.push([prop.PropID, gradeResponse.data.betResult])
                 } catch (e){
-                    console.log("error grading bet: ", e)
+                    num_props_failed += 1
+                    //console.log("error grading bet")
                 }
             }
+            console.log("num props updated", propsToUpdate.length)
+            updateAllPropResults(propsToUpdate)
         }
     }
+    console.log("num props graded: ",num_props_updated)
+    console.log("num props failed: ",num_props_failed)
+    var endTime = performance.now()
+    console.log(`Call to completeGamesAndGradeBets took ${endTime - startTime} milliseconds == ${(endTime - startTime)/1000} seconds`)
 }
 
 export async function pullOddsJamData(){
@@ -56,11 +68,10 @@ export async function pullOddsJamData(){
 }
 
 async function getStoredGameMap(){
-    const storedGames = await listGames({
-        Status: "scheduled"
-    })
+    const storedGames = await listGames({})
+    console.log(storedGames)
     const storedGameMap : Map<string, Game> = new Map<string, Game>()
-    for (const storedGame of storedGames.data as Game[]){
+    for (const storedGame of storedGames.data.rows as Game[]){
         storedGameMap.set(storedGame.GameID, storedGame)
     }
     return storedGameMap
@@ -70,6 +81,13 @@ async function addAllGames(games: Game[]){
     const gameChunks:Game[][] = sliceIntoChunks(games, 1000)
     for (const gameChunk of gameChunks){
         await addGames(gameChunk)
+    }
+}
+
+async function updateAllPropResults(propIdsAndResults: any[]){
+    const propIdsAndResultsChunks:any[][] = sliceIntoChunks(propIdsAndResults, 1000)
+    for (const propIdsAndResultsChunk of propIdsAndResultsChunks){
+        await updatePropResults(propIdsAndResultsChunk)
     }
 }
 
@@ -138,19 +156,24 @@ async function getStoredPropIds(gameIDs: string[]){
         GameIDs: gameIDs,
         IDsOnly: true
     })
-    return new Set<string>(storedProps.data)
+    const propIdSet = new Set<string>();
+    for (const storedProp of storedProps.data.rows) {
+        propIdSet.add(storedProp.PropID)
+    }
+    return propIdSet
 }
 
 
 async function getPropsAndOdds(){
-    const scheduledGames = await listGames({Status: "scheduled"})
-    console.log("# of scheduled games: " + scheduledGames.data.length)
+    const storedGamesResponse = await listGames({})
+    const storedGames: Game[] = storedGamesResponse.data.rows
+    console.log("# of stored games: " + storedGames.length)
 
     let num_odds = 0
-    for (let i = 0; i < scheduledGames.data.length; i = i+5) {
+    for (let i = 0; i < storedGames.length; i = i+5) {
         console.log("processing games #" + i +"-"+(i+4))
 
-        const gameIDs = getNextFiveGameIds(i, scheduledGames.data)
+        const gameIDs = getNextFiveGameIds(i, storedGames)
         const storedPropSet: Set<string> = await getStoredPropIds(gameIDs)
         try{
             const oddsResponse = await oddsJamApi.getGameOdds({
@@ -165,7 +188,6 @@ async function getPropsAndOdds(){
                     num_odds += gameResponse.odds.length
                     for (const oddData of gameResponse.odds){
                         const propID = gameResponse.id + "-" + oddData.market_name + "-" + oddData.name;
-                        const tMinus = getHourDiff(gameResponse.start_date)
                         const oddID = propID + "_" + oddData.sports_book_name
 
                         if (!storedPropSet.has(propID)){
@@ -182,7 +204,6 @@ async function getPropsAndOdds(){
                             gameResponse.id,
                             propID,
                             oddID,
-                            tMinus,
                             oddData.sports_book_name,
                             oddData.price,
                             oddData.checked_date))

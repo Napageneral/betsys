@@ -1,5 +1,5 @@
 import {ApiResponse} from "../util/ResponseUtility";
-import {executeSql, executeSqlById} from "../MySQLConnection";
+import {executeSql, executeSqlById} from "../db/postgresql";
 import {
     AddAnalysisBucketRequest,
     GetAnalysisBucketRequest,

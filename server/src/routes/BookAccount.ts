@@ -22,7 +22,7 @@ async function add(req: Request, res: Response){
     const createBookAccountRequest: AddBookAccountRequest = req.body;
     const output = await addBookAccount(createBookAccountRequest);
     const response : AddBookAccountResponse = {
-        BookAccount: output.data
+        BookAccount: createBookAccountRequest
     }
     return sendExpressResponseFromApiResponses(res, [output], response);
 }
@@ -39,7 +39,7 @@ async function get(req: Request, res: Response){
     const getBookAccountRequest: GetBookAccountRequest = req.body;
     const output = await getBookAccount(getBookAccountRequest);
     const response : GetBookAccountResponse = {
-        BookAccount: output.data
+        BookAccount: output.data[0]
     }
     return sendExpressResponseFromApiResponses(res, [output], response);
 }
@@ -48,7 +48,7 @@ async function list(req: Request, res: Response){
     const listBookAccountsRequest: ListBookAccountsRequest = req.body;
     const output = await listBookAccounts(listBookAccountsRequest);
     const response : ListBookAccountsResponse = {
-        BookAccounts: output.data
+        BookAccounts: output.data.rows
     }
     return sendExpressResponseFromApiResponses(res, [output], response);
 }
@@ -57,7 +57,7 @@ async function update(req: Request, res: Response){
     const updateBookAccountRequest: UpdateBookAccountRequest = req.body;
     const output = await updateBookAccount(updateBookAccountRequest);
     const response : UpdateBookAccountResponse = {
-        BookAccount: output.data
+        BookAccount: updateBookAccountRequest.BookAccount
     }
     return sendExpressResponseFromApiResponses(res, [output], response);
 }

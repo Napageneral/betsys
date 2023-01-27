@@ -1,6 +1,6 @@
 
 export class AnalysisBucket {
-    AnalysisID: string;
+    AnalysisID: number;
     BucketNumber: number;
     tMinus: number;
     RangeMin: number;
@@ -9,7 +9,7 @@ export class AnalysisBucket {
     TrueCount: number;
     FalseCount: number;
 
-    constructor(AnalysisID: string,
+    constructor(AnalysisID: number,
                 BucketNumber: number,
                 tMinus: number,
                 RangeMin: number,
@@ -30,7 +30,7 @@ export class AnalysisBucket {
 }
 
 export interface AddAnalysisBucketRequest {
-    AnalysisID: string;
+    AnalysisID: number;
     BucketNumber: number;
     tMinus: number;
     RangeMin: number;
@@ -71,7 +71,7 @@ export interface ListAnalysisBucketsResponse {
 }
 
 export interface UpdateAnalysisBucketRequest {
-    AnalysisID: string;
+    AnalysisID: number;
     BucketNumber: number;
     tMinus: number;
     AnalysisBucket: AnalysisBucket;

@@ -23,6 +23,8 @@
     "node-cache": "^5.1.2",
     "node-cron": "^3.0.2",
     "oddsjam-js-wrapper": "^1.0.2",
+    "pg": "^8.8.0",
+    "pg-format": "^1.0.4",
     "piscina": "^3.2.0",
     "puppeteer": "^19.5.2",
     "puppeteer-extra": "^3.3.4",
