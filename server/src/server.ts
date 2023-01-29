@@ -9,7 +9,9 @@ import playerRoutes from "./routes/Player"
 import bookAccountRoutes from "./routes/BookAccount"
 import bookSessionRoutes from "./routes/BookSession"
 import analysisRoutes from "./routes/Analysis"
-import {completeGamesAndGradeBets, pullOddsJamData} from "./cronJobs/oddsJam";
+import {completeGamesAndGradeBets} from "./cronJobs/completeGamesAndGradeBets";
+import {pullOddsJamData} from "./cronJobs/pullOddsJamData";
+import {identifyProfitableBets} from "./cronJobs/identifyProfitableBets";
 
 const app = express();
 
@@ -24,10 +26,11 @@ app.use('/BookSession', bookSessionRoutes);
 app.use('/Analysis', analysisRoutes);
 
 // pullOddsJamData()
-completeGamesAndGradeBets()
+// completeGamesAndGradeBets()
+//identifyProfitableBets()
 
-// cron.schedule("0 * * * *", pullOddsJamData);
-// cron.schedule("*/30 * * * *", completeGamesAndGradeBets);
+cron.schedule("0 * * * *", pullOddsJamData);
+cron.schedule("*/30 * * * *", completeGamesAndGradeBets);
 
 // begin listening for requests to pass into the installed handlers
 app.listen(SERVER_PORT, () => {

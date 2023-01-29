@@ -10,7 +10,7 @@ export async function addOdd(newOdd: AddOddRequest) : Promise<ApiResponse<any>>{
 }
 
 export async function addOdds(newOdds: Odd[]) : Promise<ApiResponse<any>>{
-    let query = format(`INSERT INTO odds ("GameID", "PropID", "OddID", "BookName", "Price", "RetrievalTimestamp") VALUES %L ON CONFLICT ("OddID", "RetrievalTimestamp") DO NOTHING`,
+    let query = format(`INSERT INTO odds ("GameID", "PropID", "OddID", "BookName", "Price", "RetrievalTimestamp") VALUES %L ON CONFLICT ("PropID", "BookName", "RetrievalTimestamp") DO NOTHING`,
         newOdds.map(Odd => [Odd.GameID, Odd.PropID, Odd.OddID, Odd.BookName, Odd.Price, Odd.RetrievalTimestamp]));
     return executeSql(query, []);
 }
@@ -39,10 +39,17 @@ export function listOdds(request: ListOddsRequest) : Promise<ApiResponse<any>>{
     }
 
     let query = queryHead;
-
-    if(queryConditions.length > 0) {
+    for (let i = 1; i < queryConditions.length+1; i++) {
         query += " WHERE ";
-        query += queryConditions.map(item => `"${item}" = $`).join(" AND ");
+        query += queryConditions.map(item => `"${item}" = $${i}`).join(" AND ");
+    }
+
+    if (request.TimeInterval){
+        query += ` AND `
+        query += `"RetrievalTimestamp" >= NOW() - INTERVAL '${request.TimeInterval}' `
+        query += `GROUP BY 
+                    "BookName", "RetrievalTimestamp", "Price", "GameID", "PropID", "OddID" 
+                    order by "RetrievalTimestamp" ASC`
     }
 
     return executeSql(query, queryParams);

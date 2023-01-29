@@ -53,6 +53,7 @@ export interface GetOddResponse {
 }
 
 export interface ListOddsRequest {
+    TimeInterval?: string;
     GameID?: string;
     PropID?: string;
     BookName?: string;
