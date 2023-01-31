@@ -60,7 +60,8 @@ export interface GetGameResponse {
 }
 
 export interface ListGamesRequest {
-    IDsOnly?: boolean
+    Incomplete?: boolean;
+    IDsOnly?: boolean;
     Sport?: string;
     League?: string;
     Status?: string;

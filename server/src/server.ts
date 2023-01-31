@@ -25,12 +25,12 @@ app.use('/BookAccount', bookAccountRoutes);
 app.use('/BookSession', bookSessionRoutes);
 app.use('/Analysis', analysisRoutes);
 
-// pullOddsJamData()
+pullOddsJamData()
 // completeGamesAndGradeBets()
-//identifyProfitableBets()
+// identifyProfitableBets()
 
-cron.schedule("0 * * * *", pullOddsJamData);
-cron.schedule("*/30 * * * *", completeGamesAndGradeBets);
+// cron.schedule("0 * * * *", pullOddsJamData);
+// cron.schedule("*/30 * * * *", completeGamesAndGradeBets);
 
 // begin listening for requests to pass into the installed handlers
 app.listen(SERVER_PORT, () => {

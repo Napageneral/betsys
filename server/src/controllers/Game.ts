@@ -52,6 +52,10 @@ export function listGames(request: ListGamesRequest) : Promise<ApiResponse<any>>
         query += " WHERE ";
         query += queryConditions.map(item => `"${item}" = $${i}`).join(" AND ");
     }
+
+    if(request.Incomplete) {
+        query += ` WHERE "Status" IN ('scheduled', 'live')`;
+    }
     return executeSql(query, queryParams);
 }
 

@@ -5,6 +5,7 @@ import {Prop} from "../../../shared/models/Prop";
 import {listOdds} from "../controllers/Odd";
 import {Odd} from "../../../shared/models/Odd";
 import {ProfitableBet} from "../../../shared/models/ProfitableBet";
+import {round} from "../util/util";
 
 async function getPendingGames(){
     const pendingGames = []
@@ -34,7 +35,6 @@ export async function identifyProfitableBets(){
             TimeInterval: "6 HOUR"
         })
         if (!latestGameOdds.data || latestGameOdds.data.rows.length == 0) {
-            console.log("game skipped due to stale odds")
             continue
         }
 
@@ -42,8 +42,6 @@ export async function identifyProfitableBets(){
         if (propsResponse.data == undefined || propsResponse.data.rows.length == 0){
             continue
         }
-        console.log("GameID: ", game.GameID)
-        console.log("num props: ", propsResponse.data.rows.length)
         for (const prop of propsResponse.data.rows as Prop[]){
 
             const latestOddsResponse = await listOdds({
@@ -53,12 +51,10 @@ export async function identifyProfitableBets(){
 
             if (!latestOddsResponse.data || latestOddsResponse.data.rows.length > 0){
                 const latestOdds = latestOddsResponse.data.rows
-                console.log("num odds: ",latestOdds.length)
                 const mostRecentOdds = new Map<string, Odd>();
                 for (const odd of latestOdds as Odd[]) {
                     mostRecentOdds.set(odd.BookName, odd)
                 }
-                console.log("num odds in last 6 hours: ", mostRecentOdds.size)
                 let bestPrice = -Infinity
                 let bestBook = undefined;
                 let sumPrices = 0
@@ -71,8 +67,8 @@ export async function identifyProfitableBets(){
                     }
                     sumPrices += odd.Price
                 }
-                const meanPrice = sumPrices / mostRecentOdds.size
-                const bestEV = (bestPrice-meanPrice)/((bestPrice+meanPrice)/2) * 100
+                const meanPrice = round( sumPrices / mostRecentOdds.size, 2)
+                const bestEV = round((bestPrice-meanPrice)/((bestPrice+meanPrice)/2) * 100, 2)
                 if (!bestBook || bestEV <= 0) continue
                 const pBet = new ProfitableBet(0, game.GameID, prop.PropID, game.Sport, prop.Market, bestEV, [prop.PropName], [bestBook.BookName], [bestPrice], bestBook.RetrievalTimestamp)
                 console.log(pBet)

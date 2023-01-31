@@ -57,3 +57,7 @@ export function shallowEqual(object1:any, object2:any) {
     }
     return true;
 }
+
+export function round(value: number, decimals: number) {
+    return Number(Math.round(Number(value + 'e' + decimals))+'e-'+decimals);
+}

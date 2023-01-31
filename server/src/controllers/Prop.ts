@@ -61,6 +61,15 @@ export async function updatePropResults(propIdsAndResults: any[][]) : Promise<Ap
     return executeSql(query, []);
 }
 
+export async function upsertProps(props: Prop[]) : Promise<ApiResponse<any>> {
+    let query = format(`INSERT INTO "Props" ("GameID", "PropID", "Market", "PropName", "PropResult", "PropPoints", "PropActor", "OverUnder") VALUES %L`,
+        props.map(Prop => [Prop.GameID, Prop.PropID, Prop.Market, Prop.PropName, Prop.PropResult, Prop.PropPoints, Prop.PropActor, Prop.OverUnder]));
+    query += `ON CONFLICT ("PropID") DO UPDATE SET "GameID"=EXCLUDED."GameID", "Market"=EXCLUDED."Market",
+                                                    "PropName"=EXCLUDED."PropName", "PropPoints"=EXCLUDED."PropPoints",
+                                                    "PropActor"=EXCLUDED."PropActor", "OverUnder"=EXCLUDED."OverUnder"`
+    return executeSql(query, []);
+}
+
 export async function updateProp(PropID: string, updatedProp: Prop) : Promise<ApiResponse<any>> {
     const queryString: string = `UPDATE "Props" SET GameID = $1, PropID = $2, Market = $3, PropName = $4, PropResult = $5, PropPoints = $6 WHERE PropID = $7`;
     return executeSqlById(queryString, [updatedProp.GameID, updatedProp.PropID, updatedProp.Market,

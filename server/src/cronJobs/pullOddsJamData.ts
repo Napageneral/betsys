@@ -4,9 +4,17 @@ import {addGames, listGames, updateGame} from "../controllers/Game";
 import {sportsbooks} from "../../../shared/constants";
 import {Odd} from "../../../shared/models/Odd";
 import {Prop} from "../../../shared/models/Prop";
-import {addProps, listProps, updatePropResults} from "../controllers/Prop";
+import {addProps, listProps, updatePropResults, upsertProps} from "../controllers/Prop";
 import {addOdds} from "../controllers/Odd";
-import {getHourDiff, shallowEqual, sliceIntoChunks} from "../util/util";
+import {shallowEqual, sliceIntoChunks} from "../util/util";
+import {BetType, MutuallyExclusiveGroup} from "../../../shared/models/MutuallyExclusiveGroup";
+import {
+    addMutuallyExclusiveGroups,
+    getNextID,
+    listMutuallyExclusiveGroups
+} from "../controllers/MutuallyExclusiveGroup";
+
+const ouSet = new Set(['over', 'under', 'Over', 'Under'])
 
 export async function pullOddsJamData(){
     var startTime = performance.now()
@@ -36,17 +44,10 @@ async function addAllGames(games: Game[]){
     }
 }
 
-async function updateAllPropResults(propIdsAndResults: any[]){
-    const propIdsAndResultsChunks:any[][] = sliceIntoChunks(propIdsAndResults, 1000)
-    for (const propIdsAndResultsChunk of propIdsAndResultsChunks){
-        await updatePropResults(propIdsAndResultsChunk)
-    }
-}
-
-async function addAllProps(Props: Prop[]){
+async function upsertAllProps(Props: Prop[]){
     const PropChunks:Prop[][] = sliceIntoChunks(Props, 1000)
     for (const PropChunk of PropChunks){
-        await addProps(PropChunk)
+        await upsertProps(PropChunk)
     }
 }
 
@@ -54,6 +55,13 @@ async function addAllOdds(Odds: Odd[]){
     const OddChunks:Odd[][] = sliceIntoChunks(Odds, 1000)
     for (const OddChunk of OddChunks){
         await addOdds(OddChunk)
+    }
+}
+
+async function addAllMegs(Megs: MutuallyExclusiveGroup[]){
+    const MegChunks:MutuallyExclusiveGroup[][] = sliceIntoChunks(Megs, 1000)
+    for (const MegChunk of MegChunks){
+        await addMutuallyExclusiveGroups(MegChunk)
     }
 }
 
@@ -103,30 +111,63 @@ function getNextFiveGameIds(i: number, games: Game[]){
     return gameIDs
 }
 
-async function getStoredPropIds(gameIDs: string[]){
+async function getStoredProps(gameIDs: string[]){
     const storedProps = await listProps({
-        GameIDs: gameIDs,
-        IDsOnly: true
+        GameIDs: gameIDs
     })
-    const propIdSet = new Set<string>();
-    for (const storedProp of storedProps.data.rows) {
-        propIdSet.add(storedProp.PropID)
+    const propMap = new Map<string, Prop>();
+    for (const storedProp of storedProps.data.rows as Prop[]) {
+        propMap.set(storedProp.PropID, storedProp)
     }
-    return propIdSet
+    return propMap
 }
 
+async function getStoredMegs(gameIDs: string[]){
+    const storedMegs = await listMutuallyExclusiveGroups({
+        GameIDs: gameIDs
+    })
+    const megMap = new Map<string, MutuallyExclusiveGroup>();
+    for (const storedMeg of storedMegs.data.rows as MutuallyExclusiveGroup[]) {
+        let megKey: string = buildMegKey(storedMeg.GameID, storedMeg.Market, storedMeg.BetType, storedMeg.PropPoints, storedMeg.PropActor)
+        megMap.set(megKey, storedMeg)
+    }
+    return megMap
+}
+
+async function getNextMegID(){
+    const nextMegIdResponse = await getNextID()
+    if (nextMegIdResponse.data){
+        return nextMegIdResponse.data.rows[0].max
+    }
+    return 1
+}
+
+function buildMegKey(gameID: string, market: string, betType: BetType, propPoints?: number, propActor?: string){
+    let megKey: string = gameID + "_" + market + "_" + betType;
+    if (betType != "Moneyline"){
+        megKey +=  "_" + propPoints;
+        if (propActor){
+            megKey += "_" + propActor;
+        }
+    }
+    return megKey;
+}
 
 async function getPropsAndOdds(){
-    const storedGamesResponse = await listGames({})
-    const storedGames: Game[] = storedGamesResponse.data.rows
-    console.log("# of stored games: " + storedGames.length)
+    const incompleteGamesResponse = await listGames({
+        Incomplete:true
+    })
+    const storedGames: Game[] = incompleteGamesResponse.data.rows
+    console.log("# of stored incomplete games: " + storedGames.length)
 
     let num_odds = 0
     for (let i = 0; i < storedGames.length; i = i+5) {
         console.log("processing games #" + i +"-"+(i+4))
 
         const gameIDs = getNextFiveGameIds(i, storedGames)
-        const storedPropSet: Set<string> = await getStoredPropIds(gameIDs)
+        const storedProps: Map<string, Prop> = await getStoredProps(gameIDs)
+        const storedMegs: Map<string, MutuallyExclusiveGroup> = await getStoredMegs(gameIDs)
+        let nextMegID: number = await getNextMegID()
         try{
             const oddsResponse = await oddsJamApi.getGameOdds({
                 game_id: gameIDs,
@@ -135,6 +176,7 @@ async function getPropsAndOdds(){
 
             const newProps: Map<string, Prop> = new Map<string, Prop>()
             const newOdds: Map<string, Odd> = new Map<string, Odd>()
+            const newMegs: Map<string, MutuallyExclusiveGroup> = new Map<string, MutuallyExclusiveGroup>()
             if (oddsResponse.data){
                 for (const gameResponse of oddsResponse.data){
                     num_odds += gameResponse.odds.length
@@ -142,14 +184,50 @@ async function getPropsAndOdds(){
                         const propID = gameResponse.id + "-" + oddData.market_name + "-" + oddData.name;
                         const oddID = propID + "_" + oddData.sports_book_name
 
-                        if (!storedPropSet.has(propID)){
+                        let propActor = undefined;
+                        let overUnder = undefined;
+                        let betType: BetType = "Moneyline";
+
+                        if (oddData.bet_points){
+                            const betNameTokens = oddData.name.split(" ")
+                            const numTokens = betNameTokens.length
+                            if (ouSet.has(betNameTokens[numTokens-2])){
+                                betType = "OverUnder"
+                                overUnder = betNameTokens[numTokens-2]
+                                propActor = betNameTokens.slice(0,numTokens-2).join(" ")
+                            } else {
+                                betType = "Spread"
+                                propActor = betNameTokens.slice(0,numTokens-1).join(" ")
+                            }
+                        } else {
+                            betType = "Moneyline"
+                        }
+
+                        let megKey = buildMegKey(gameResponse.id, oddData.market_name, betType, oddData.bet_points, propActor)
+                        let megId = undefined;
+                        if (storedMegs.has(megKey)){
+                            megId = storedMegs.get(megKey)?.MutuallyExclusiveGroupID
+                        } else if (newMegs.has(megKey)) {
+                            megId = newMegs.get(megKey)?.MutuallyExclusiveGroupID
+                        } else {
+                            newMegs.set(megKey, new MutuallyExclusiveGroup(nextMegID, gameResponse.id, oddData.market_name, betType, propActor, oddData.bet_points))
+                            megId = nextMegID
+                            nextMegID += 1;
+                        }
+
+                        if (!storedProps.has(propID)){
+                            if (!megId) continue
                             newProps.set(propID, new Prop(
                                 gameResponse.id,
                                 propID,
+                                megId,
                                 oddData.market_name,
                                 oddData.name,
                                 "unknown",
-                                oddData.bet_points))
+                                betType,
+                                oddData.bet_points,
+                                overUnder,
+                                propActor))
                         }
 
                         newOdds.set(oddID, new Odd(
@@ -162,7 +240,9 @@ async function getPropsAndOdds(){
                     }
                 }
             }
-            await addAllProps(Array.from(newProps.values()))
+
+            await addAllMegs(Array.from(newMegs.values()))
+            await upsertAllProps(Array.from(newProps.values()))
             await addAllOdds(Array.from(newOdds.values()))
         }catch (e) {
             console.log("odds request failed ", e)
