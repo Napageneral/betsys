@@ -1,3 +1,4 @@
+import {MutuallyExclusiveGroup} from "./MutuallyExclusiveGroup";
 
 export class Game {
     GameID: string;
@@ -8,6 +9,7 @@ export class Game {
     AwayTeam: string;
     Status: string;
     Tournament: string;
+    Megs?: Map<string, MutuallyExclusiveGroup>
 
     constructor(GameID: string,
                 Sport: string,
@@ -61,6 +63,7 @@ export interface GetGameResponse {
 
 export interface ListGamesRequest {
     Incomplete?: boolean;
+    GameEnded?: boolean;
     IDsOnly?: boolean;
     Sport?: string;
     League?: string;

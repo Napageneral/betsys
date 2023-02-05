@@ -26,8 +26,8 @@ app.use('/BookSession', bookSessionRoutes);
 app.use('/Analysis', analysisRoutes);
 
 pullOddsJamData()
-// completeGamesAndGradeBets()
-// identifyProfitableBets()
+//completeGamesAndGradeBets()
+//identifyProfitableBets()
 
 // cron.schedule("0 * * * *", pullOddsJamData);
 // cron.schedule("*/30 * * * *", completeGamesAndGradeBets);

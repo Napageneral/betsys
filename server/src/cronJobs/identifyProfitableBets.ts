@@ -70,8 +70,8 @@ export async function identifyProfitableBets(){
                 const meanPrice = round( sumPrices / mostRecentOdds.size, 2)
                 const bestEV = round((bestPrice-meanPrice)/((bestPrice+meanPrice)/2) * 100, 2)
                 if (!bestBook || bestEV <= 0) continue
-                const pBet = new ProfitableBet(0, game.GameID, prop.PropID, game.Sport, prop.Market, bestEV, [prop.PropName], [bestBook.BookName], [bestPrice], bestBook.RetrievalTimestamp)
-                console.log(pBet)
+                // const pBet = new ProfitableBet(0, game.GameID, prop.PropID, game.Sport, prop.Market, bestEV, [prop.PropName], [bestBook.BookName], [bestPrice], bestBook.RetrievalTimestamp)
+                // console.log(pBet)
             }
         }
     }

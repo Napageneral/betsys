@@ -1,4 +1,5 @@
 import {BetType} from "./MutuallyExclusiveGroup";
+import {Odd} from "./Odd";
 
 export class Prop {
     GameID: string;
@@ -11,6 +12,7 @@ export class Prop {
     OverUnder: string;
     PropActor: string;
     PropPoints: number;
+    Odds?: Map<string, Odd>
 
     constructor(GameID: string,
                 PropID: string,

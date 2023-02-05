@@ -1,35 +1,27 @@
+export declare type Type = "Arbitrage" | "PositiveEV";
 
 export class ProfitableBet {
     ProfitableBetID: number;
     GameID: string;
-    PropID: string;
-    Sport: string;
-    Market: string;
-    Percent: number
-    BetNames: string[];
-    BookNames: string[];
-    Prices: number[];
+    MutuallyExclusiveGroupID: number;
+    OddIDs: string[];
+    Percent: number;
+    Type: Type;
     Timestamp: Date;
 
     constructor(ProfitableBetID: number,
                 GameID: string,
-                PropID: string,
-                Sport: string,
-                Market: string,
+                MutuallyExclusiveGroupID: number,
+                OddIDs: string[],
                 Percent: number,
-                BetNames: string[],
-                BookNames: string[],
-                Prices: number[],
+                Type: Type,
                 Timestamp: Date) {
         this.ProfitableBetID = ProfitableBetID;
         this.GameID = GameID;
-        this.PropID = PropID;
-        this.Sport = Sport;
-        this.Market = Market;
+        this.MutuallyExclusiveGroupID = MutuallyExclusiveGroupID;
+        this.OddIDs = OddIDs;
         this.Percent = Percent;
-        this.BetNames = BetNames;
-        this.BookNames = BookNames;
-        this.Prices = Prices;
+        this.Type = Type;
         this.Timestamp = Timestamp;
     }
 
@@ -37,13 +29,10 @@ export class ProfitableBet {
 
 export interface AddProfitableBetRequest {
     GameID: string;
-    PropID: string;
-    Sport: string;
-    Market: string;
-    Percent: number
-    BetNames: string[];
-    BookNames: string[];
-    Prices: number[];
+    MutuallyExclusiveGroupID: number;
+    OddIDs: string[];
+    Percent: number;
+    Type: Type;
     Timestamp: Date;
 }
 

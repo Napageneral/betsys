@@ -1,3 +1,5 @@
+import {Prop} from "./Prop";
+
 export declare type BetType = "Moneyline" | "Spread" | "OverUnder";
 
 export class MutuallyExclusiveGroup {
@@ -7,6 +9,7 @@ export class MutuallyExclusiveGroup {
     BetType: BetType
     PropActor: string;
     PropPoints: number;
+    Props?: Map<string, Prop>
 
     constructor(MutuallyExclusiveGroupID: number,
                 GameID: string,
@@ -22,6 +25,21 @@ export class MutuallyExclusiveGroup {
         this.PropPoints = PropPoints;
     }
 
+    getMegKey(){
+        return buildMegKey(this.GameID, this.Market, this.BetType, this.PropPoints, this.PropActor)
+    }
+
+}
+
+export function buildMegKey(gameID: string, market: string, betType: BetType, propPoints?: number, propActor?: string){
+    let megKey: string = gameID + "_" + market + "_" + betType;
+    if (betType != "Moneyline"){
+        megKey +=  "_" + propPoints;
+        if (propActor){
+            megKey += "_" + propActor;
+        }
+    }
+    return megKey;
 }
 
 export interface AddMutuallyExclusiveGroupRequest {

@@ -1,7 +1,7 @@
 import {ApiResponse} from "../util/ResponseUtility";
 import {executeSql, executeSqlById} from "../db/postgresql";
 import {AddPropRequest, Prop, ListPropsRequest} from "../../../shared/models/Prop";
-import {Odd} from "../../../shared/models/Odd";
+import {sliceIntoChunks} from "../util/util";
 const format = require('pg-format');
 
 export async function addProp(newProp: AddPropRequest) : Promise<ApiResponse<any>>{
@@ -19,6 +19,17 @@ export async function addProps(newProps: Prop[]) : Promise<ApiResponse<any>>{
 export async function getProp(PropID: string) : Promise<ApiResponse<any>> {
     const queryString: string = `SELECT * FROM "Props" WHERE "PropID" = $1`;
     return executeSqlById(queryString, [PropID]);
+}
+
+export async function getStoredProps(gameIDs: string[]){
+    const storedProps = await listProps({
+        GameIDs: gameIDs
+    })
+    const propMap = new Map<string, Prop>();
+    for (const storedProp of storedProps.data.rows as Prop[]) {
+        propMap.set(storedProp.PropID, storedProp)
+    }
+    return propMap
 }
 
 export function listProps(request: ListPropsRequest) : Promise<ApiResponse<any>>{
@@ -59,6 +70,13 @@ export function listProps(request: ListPropsRequest) : Promise<ApiResponse<any>>
 export async function updatePropResults(propIdsAndResults: any[][]) : Promise<ApiResponse<any>> {
     let query = format(`UPDATE "Props" set "PropResult" = nv.propresult FROM (values %L) as nv (propid, propresult) WHERE "Props"."PropID" = nv.propid`, propIdsAndResults)
     return executeSql(query, []);
+}
+
+export async function upsertAllProps(Props: Prop[]){
+    const PropChunks:Prop[][] = sliceIntoChunks(Props, 1000)
+    for (const PropChunk of PropChunks){
+        await upsertProps(PropChunk)
+    }
 }
 
 export async function upsertProps(props: Prop[]) : Promise<ApiResponse<any>> {

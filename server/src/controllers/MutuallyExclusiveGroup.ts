@@ -4,8 +4,9 @@ import {
     AddMutuallyExclusiveGroupRequest,
     MutuallyExclusiveGroup,
     ListMutuallyExclusiveGroupsRequest,
-    GetMutuallyExclusiveGroupRequest
+    GetMutuallyExclusiveGroupRequest, buildMegKey
 } from "../../../shared/models/MutuallyExclusiveGroup";
+import {sliceIntoChunks} from "../util/util";
 const format = require('pg-format');
 
 export async function addMutuallyExclusiveGroup(newMutuallyExclusiveGroup: AddMutuallyExclusiveGroupRequest) : Promise<ApiResponse<any>>{
@@ -14,11 +15,26 @@ export async function addMutuallyExclusiveGroup(newMutuallyExclusiveGroup: AddMu
         newMutuallyExclusiveGroup.BetType, newMutuallyExclusiveGroup.PropActor, newMutuallyExclusiveGroup.PropPoints]);
 }
 
+export async function addAllMegs(Megs: MutuallyExclusiveGroup[]){
+    const MegChunks:MutuallyExclusiveGroup[][] = sliceIntoChunks(Megs, 1000)
+    for (const MegChunk of MegChunks){
+        await addMutuallyExclusiveGroups(MegChunk)
+    }
+}
+
 export async function addMutuallyExclusiveGroups(newMutuallyExclusiveGroups: MutuallyExclusiveGroup[]) : Promise<ApiResponse<any>>{
     let query = format(`INSERT INTO "MutuallyExclusiveGroups" ("GameID", "Market", "BetType", "PropActor", "PropPoints") VALUES %L`,
         newMutuallyExclusiveGroups.map(MutuallyExclusiveGroup => [MutuallyExclusiveGroup.GameID, MutuallyExclusiveGroup.Market, MutuallyExclusiveGroup.BetType,
             MutuallyExclusiveGroup.PropActor, MutuallyExclusiveGroup.PropPoints]));
     return executeSql(query, []);
+}
+
+export async function getNextMegID(){
+    const nextMegIdResponse = await getNextID()
+    if (nextMegIdResponse.data){
+        return nextMegIdResponse.data.rows[0].max
+    }
+    return 1
 }
 
 export async function getNextID(){
@@ -29,6 +45,18 @@ export async function getNextID(){
 export async function getMutuallyExclusiveGroup(request: GetMutuallyExclusiveGroupRequest) : Promise<ApiResponse<any>> {
     const queryString: string = `SELECT * FROM "MutuallyExclusiveGroups" WHERE "MutuallyExclusiveGroupID" = $1`;
     return executeSqlById(queryString, [request.MutuallyExclusiveGroupID]);
+}
+
+export async function getStoredMegs(gameIDs: string[]){
+    const storedMegs = await listMutuallyExclusiveGroups({
+        GameIDs: gameIDs
+    })
+    const megMap = new Map<string, MutuallyExclusiveGroup>();
+    for (const storedMeg of storedMegs.data.rows as MutuallyExclusiveGroup[]) {
+        let megKey: string = buildMegKey(storedMeg.GameID, storedMeg.Market, storedMeg.BetType, storedMeg.PropPoints, storedMeg.PropActor)
+        megMap.set(megKey, storedMeg)
+    }
+    return megMap
 }
 
 export function listMutuallyExclusiveGroups(request: ListMutuallyExclusiveGroupsRequest) : Promise<ApiResponse<any>>{

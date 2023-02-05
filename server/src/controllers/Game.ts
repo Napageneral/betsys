@@ -1,12 +1,20 @@
 import {ApiResponse} from "../util/ResponseUtility";
 import {executeSql, executeSqlById} from "../db/postgresql";
 import {AddGameRequest, Game, ListGamesRequest} from "../../../shared/models/Game";
+import {sliceIntoChunks} from "../util/util";
 const format = require('pg-format');
 
 export async function addGame(newGame: AddGameRequest) : Promise<ApiResponse<any>>{
     let query = `INSERT INTO "Games" ("GameID", "Sport", "League", "StartDate", "HomeTeam", "AwayTeam", "Status", "Tournament") VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`;
     return executeSql(query, [newGame.GameID, newGame.Sport, newGame.League, newGame.StartDate,
                                             newGame.HomeTeam, newGame.AwayTeam, newGame.Status, newGame.Tournament]);
+}
+
+export async function addAllGames(games: Game[]){
+    const gameChunks:Game[][] = sliceIntoChunks(games, 1000)
+    for (const gameChunk of gameChunks){
+        await addGames(gameChunk)
+    }
 }
 
 export async function addGames(newGames: Game[]) : Promise<ApiResponse<any>>{
@@ -18,6 +26,15 @@ export async function addGames(newGames: Game[]) : Promise<ApiResponse<any>>{
 export async function getGame(GameID: string) : Promise<ApiResponse<any>> {
     const queryString: string = `SELECT * FROM "Games" WHERE "GameID" = $1`;
     return executeSqlById(queryString, [GameID]);
+}
+
+export async function getStoredGameMap(): Promise<Map<string, Game>>{
+    const storedGames = await listGames({})
+    const storedGameMap : Map<string, Game> = new Map<string, Game>()
+    for (const storedGame of storedGames.data.rows as Game[]){
+        storedGameMap.set(storedGame.GameID, storedGame)
+    }
+    return storedGameMap
 }
 
 export function listGames(request: ListGamesRequest) : Promise<ApiResponse<any>>{
@@ -53,8 +70,11 @@ export function listGames(request: ListGamesRequest) : Promise<ApiResponse<any>>
         query += queryConditions.map(item => `"${item}" = $${i}`).join(" AND ");
     }
 
-    if(request.Incomplete) {
+    if(request.Incomplete || request.GameEnded) {
         query += ` WHERE "Status" IN ('scheduled', 'live')`;
+    }
+    if(request.GameEnded) {
+        query += ` AND "StartDate" < now() - interval '6 hours'`;
     }
     return executeSql(query, queryParams);
 }

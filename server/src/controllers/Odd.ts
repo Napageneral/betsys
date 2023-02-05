@@ -1,12 +1,20 @@
 import {ApiResponse} from "../util/ResponseUtility";
 import {executeSql, executeSqlById} from "../db/postgresql";
 import {AddOddRequest, Odd, ListOddsRequest} from "../../../shared/models/Odd";
+import {sliceIntoChunks} from "../util/util";
 const format = require('pg-format');
 
 export async function addOdd(newOdd: AddOddRequest) : Promise<ApiResponse<any>>{
     let query = `INSERT INTO odds ("GameID", "PropID", "OddID", "BookName", "Price", "RetrievalTimestamp") VALUES ($1, $2, $3, $4, $5, $6)`;
     return executeSql(query, [newOdd.GameID, newOdd.PropID, newOdd.OddID, newOdd.BookName,
         newOdd.Price, newOdd.RetrievalTimestamp]);
+}
+
+export async function addAllOdds(Odds: Odd[]){
+    const OddChunks:Odd[][] = sliceIntoChunks(Odds, 1000)
+    for (const OddChunk of OddChunks){
+        await addOdds(OddChunk)
+    }
 }
 
 export async function addOdds(newOdds: Odd[]) : Promise<ApiResponse<any>>{
