@@ -1,25 +1,47 @@
 import {ApiResponse} from "../util/ResponseUtility";
 import {executeSql, executeSqlById} from "../db/postgresql";
 import {AddProfitableBetRequest, ProfitableBet, ListProfitableBetsRequest} from "../../../shared/models/ProfitableBet";
+import {sliceIntoChunks} from "../util/util";
 const format = require('pg-format');
 
-export async function addProfitableBet(newProfitableBet: AddProfitableBetRequest) : Promise<ApiResponse<any>>{
-    let query = `INSERT INTO "ProfitableBets" ("GameID", "PropID", "Sport", "Market", "Timestamp",
-                            "Percent", "Prices", "BookNames", "BetNames") 
-                            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`;
-    return executeSql(query, [newProfitableBet.GameID, newProfitableBet.PropID, newProfitableBet.Sport,
-        newProfitableBet.Market, newProfitableBet.Timestamp, newProfitableBet.Percent,
-    newProfitableBet.Prices, newProfitableBet.BookNames, newProfitableBet.BetNames]);
+export async function addProfitableBet(pBet: AddProfitableBetRequest) : Promise<ApiResponse<any>>{
+    let query = `INSERT INTO "ProfitableBets" ("Percent", "RetrievalTimestamp", "GameID", "StartDate", "EventName",
+                                            "Sport", "MutuallyExclusiveGroupID", "Market", "PropIDs", "PropNames",
+                                            "OddIDs", "Prices", "BookNames", "Type", "MarketWidth", "FairOdds") 
+                                            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`;
+    return executeSql(query, [pBet.Percent, pBet.RetrievalTimestamp, pBet.GameID, pBet.StartDate, pBet.EventName,
+                                            pBet.Sport, pBet.MutuallyExclusiveGroupID, pBet.Market, pBet.PropIDs,
+                                            pBet.PropNames, pBet.OddIDs, pBet.Prices, pBet.BookNames, pBet.Type,
+                                            pBet.MarketWidth, pBet.FairOdds]);
 }
 
-// export async function addProfitableBets(newProfitableBets: ProfitableBet[]) : Promise<ApiResponse<any>>{
-//     let query = format(`INSERT INTO ProfitableBets ("GameID", "PropID", "ProfitableBetID", "BookName", "Price", "RetrievalTimestamp") VALUES %L ON CONFLICT ("PropID", "BookName", "RetrievalTimestamp") DO NOTHING`,
-//         newProfitableBets.map(ProfitableBet => [ProfitableBet.GameID, ProfitableBet.PropID, ProfitableBet.ProfitableBetID, ProfitableBet.BookName, ProfitableBet.Price, ProfitableBet.RetrievalTimestamp]));
-//     return executeSql(query, []);
-// }
+export async function addAllProfitableBets(ProfitableBets: ProfitableBet[]){
+    const ProfitableBetChunks:ProfitableBet[][] = sliceIntoChunks(ProfitableBets, 1000)
+    for (const ProfitableBetChunk of ProfitableBetChunks){
+        await addProfitableBets(ProfitableBetChunk)
+    }
+}
+
+export async function addProfitableBets(pBets: ProfitableBet[]) : Promise<ApiResponse<any>>{
+    let query = `INSERT INTO "ProfitableBets" ("Percent", "RetrievalTimestamp", "GameID", "StartDate", "EventName",
+                                                    "Sport", "MutuallyExclusiveGroupID", "Market", "PropIDs", "PropNames",
+                                                    "OddIDs", "Prices", "BookNames", "Type", "MarketWidth", "FairOdds") VALUES `
+    for (let i = 0; i < pBets.length; i++) {
+        const pBet = pBets[i];
+        let pBetValue = format(`(%L, %L, %L, %L, %L, %L, %L, %L, ARRAY[%L], ARRAY[%L], ARRAY[%L], '{%s}', ARRAY[%L], %L, %L, '{%s}')`, pBet.Percent, pBet.RetrievalTimestamp, pBet.GameID, pBet.StartDate, pBet.EventName,
+            pBet.Sport, pBet.MutuallyExclusiveGroupID, pBet.Market, pBet.PropIDs,
+            pBet.PropNames, pBet.OddIDs, pBet.Prices, pBet.BookNames, pBet.Type,
+            pBet.MarketWidth, pBet.FairOdds)
+        if (i < pBets.length -1){
+            pBetValue += " , "
+        }
+        query += pBetValue
+    }
+    return executeSql(query, []);
+}
 
 export async function getProfitableBet(ProfitableBetID: number) : Promise<ApiResponse<any>> {
-    const queryString: string = `SELECT * FROM "ProfitableBets" WHERE "ProfitableBetID" = $1`;
+    const queryString: string = `SELECT * FROM "ProfitableBets" WHERE ProfitableBetID = $1`;
     return executeSqlById(queryString, [ProfitableBetID]);
 }
 
@@ -35,6 +57,10 @@ export function listProfitableBets(request: ListProfitableBetsRequest) : Promise
     if (request.PropID) {
         queryConditions.push("PropID");
         queryParams.push(request.PropID);
+    }
+    if (request.BookName) {
+        queryConditions.push("BookName");
+        queryParams.push(request.BookName);
     }
 
     let query = queryHead;
@@ -54,25 +80,13 @@ export function listProfitableBets(request: ListProfitableBetsRequest) : Promise
     return executeSql(query, queryParams);
 }
 
-export async function updateProfitableBet(ProfitableBetID: string, updatedProfitableBet: ProfitableBet) : Promise<ApiResponse<any>> {
-    const queryString: string = `UPDATE "ProfitableBets" SET "GameID" = $1, "PropID" = $2, "Sport" = $3,
-                            "Market" = $4, "Timestamp" = $5, "Percent" = $6, "Prices" = $7,
-                            "BookNames" = $8, "BetNames" = $9
-                            WHERE "ProfitableBetID" = $10`;
-    return executeSqlById(queryString, [
-        updatedProfitableBet.GameID, updatedProfitableBet.PropID, updatedProfitableBet.Sport,
-        updatedProfitableBet.Market, updatedProfitableBet.Timestamp,
-        updatedProfitableBet.Percent, updatedProfitableBet.Prices,
-        updatedProfitableBet.BookNames, updatedProfitableBet.BetNames,
-        ProfitableBetID]);
-}
 
 export async function removeProfitableBet(ProfitableBetID: string) : Promise<ApiResponse<any>>{
-    let query = `DELETE FROM "ProfitableBets" WHERE "ProfitableBetID" = $1`;
+    let query = `DELETE FROM ProfitableBets WHERE "ProfitableBetID" = $1`;
     return executeSqlById(query, [ProfitableBetID]);
 }
 
 export async function removeAllProfitableBets(): Promise<ApiResponse<any>>{
-    let query = `DELETE FROM "ProfitableBets"`;
+    let query = `DELETE FROM ProfitableBets`;
     return executeSql(query, []);
 }

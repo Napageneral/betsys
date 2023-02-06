@@ -119,7 +119,7 @@ async function getPropsAndOdds(){
                 }
             }
 
-            betBatchData.calculateProfitableBets()
+            betBatchData.calculateAndSaveProfitableBets()
             await betBatchData.saveData()
         }catch (e) {
             console.log("odds request failed ", e)

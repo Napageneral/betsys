@@ -72,8 +72,8 @@ export interface AddProfitableBetRequest {
     Percent: number;
     Type: Type;
     RetrievalTimestamp: Date;
-    MarketWidth?: number;
-    FairOdds?: number[];
+    MarketWidth: number;
+    FairOdds: number[];
 }
 
 export interface AddProfitableBetResponse {
@@ -102,6 +102,7 @@ export interface ListProfitableBetsRequest {
     Sport?: string;
     Market?: string;
     MinPercent?: number
+    BookName?: string
 }
 
 export interface ListProfitableBetsResponse {

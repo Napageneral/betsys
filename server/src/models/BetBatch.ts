@@ -8,6 +8,7 @@ import {addAllOdds} from "../controllers/Odd";
 import {ComputedProp} from "../models/ComputedProp";
 import {round} from "../util/util";
 import {ProfitableBet} from "../../../shared/models/ProfitableBet";
+import {addProfitableBets} from "../controllers/ProfitableBet";
 
 export class BetBatch {
     games: Map<string, Game> = new Map<string, Game>()
@@ -33,7 +34,7 @@ export class BetBatch {
         }
     }
 
-    calculateProfitableBets(){
+    calculateAndSaveProfitableBets(){
         for (const gameId of this.gamesToMegs.keys()) {
             const game: Game | undefined = this.games.get(gameId)
             if (!game) continue
@@ -50,9 +51,9 @@ export class BetBatch {
                     computedProps.push(this.computeProp(prop))
                 }
                 if (computedProps[0] && computedProps[1]){
-                    const computedMeg = this.computeMeg(game, meg, props[0], props[1], computedProps[0], computedProps[1])
+                    const computedMeg: ProfitableBet[] = this.computeMeg(game, meg, props[0], props[1], computedProps[0], computedProps[1])
                     if (computedMeg.length > 0){
-                        console.log(computedMeg)
+                        addProfitableBets(computedMeg)
                     }
                 }
             }
