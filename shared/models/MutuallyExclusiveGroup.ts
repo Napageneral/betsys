@@ -43,6 +43,9 @@ export function buildMegKey(gameID: string, market: string, betType: BetType, pr
             megKey += "_" + propPoints
             break;
         case "Spread":
+            if (propActor){
+                megKey += "_" + propActor
+            }
             if (!propPoints) break
             megKey += "_" + Math.abs(Number(propPoints))
             break;

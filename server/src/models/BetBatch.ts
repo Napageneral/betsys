@@ -53,7 +53,9 @@ export class BetBatch {
                 if (computedProps[0] && computedProps[1]){
                     const computedMeg: ProfitableBet[] = this.computeMeg(game, meg, props[0], props[1], computedProps[0], computedProps[1])
                     if (computedMeg.length > 0){
-                        addProfitableBets(computedMeg)
+                        console.log(computedMeg)
+                        console.log(props)
+                        //addProfitableBets(computedMeg)
                     }
                 }
             }
@@ -156,7 +158,7 @@ export class BetBatch {
                         [odd1.OddID, odd2.OddID],
                         [odd1.Price, odd2.Price],
                         [odd1.BookName, odd2.BookName],
-                        round(1-totalImpliedProb,2),
+                        round((1-totalImpliedProb)*100,2),
                         'Arbitrage',
                         oldestTimestamp,
                         undefined,
@@ -234,7 +236,8 @@ export class BetBatch {
             return element.BookName == "Pinnacle";
         })
         odds.sort(function(a,b) {return (a.Price > b.Price) ? 1 : ((b.Price > a.Price) ? -1 : 0);})
-        const meanPrice = odds.reduce((acc, c) => acc + (c.Price/odds.length), 0);
+
+        const meanPrice = this.impliedProbToAmericanOdds(odds.reduce((acc, c) => acc + (this.americanOddsToImpliedProb(c.Price)/odds.length), 0));
 
         return{
             SortedOdds: odds,
