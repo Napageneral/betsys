@@ -9,7 +9,6 @@ export class Game {
     AwayTeam: string;
     Status: string;
     Tournament: string;
-    Megs?: Map<string, MutuallyExclusiveGroup>
 
     constructor(GameID: string,
                 Sport: string,

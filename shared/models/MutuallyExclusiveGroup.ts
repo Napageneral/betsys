@@ -33,12 +33,21 @@ export class MutuallyExclusiveGroup {
 
 export function buildMegKey(gameID: string, market: string, betType: BetType, propPoints?: number, propActor?: string){
     let megKey: string = gameID + "_" + market + "_" + betType;
-    if (betType != "Moneyline"){
-        megKey +=  "_" + propPoints;
-        if (propActor){
-            megKey += "_" + propActor;
-        }
+    switch (betType) {
+        case "Moneyline":
+            break;
+        case "OverUnder":
+            if (propActor){
+                megKey += "_" + propActor
+            }
+            megKey += "_" + propPoints
+            break;
+        case "Spread":
+            if (!propPoints) break
+            megKey += "_" + Math.abs(Number(propPoints))
+            break;
     }
+
     return megKey;
 }
 

@@ -1,8 +1,8 @@
-import {Odd} from "../../../shared/models/Odd";
+import {ProfitableBet} from "../../../shared/models/ProfitableBet";
 
 export declare type ComputedMeg = {
-    ArbitrageBets: any[],
-    PositiveEVBets: Odd[],
+    ArbitrageBets: ProfitableBet[],
+    PositiveEVBets: ProfitableBet[],
     MeanMarketWidth: number,
     MeanNoVigOdds: { NoVigPrice1:number, NoVigPrice2:number},
     PinnacleMarketWidth?: number,

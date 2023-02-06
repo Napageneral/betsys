@@ -80,9 +80,11 @@ export async function upsertAllProps(Props: Prop[]){
 }
 
 export async function upsertProps(props: Prop[]) : Promise<ApiResponse<any>> {
-    let query = format(`INSERT INTO "Props" ("GameID", "PropID", "Market", "PropName", "PropResult", "PropPoints", "PropActor", "OverUnder") VALUES %L`,
-        props.map(Prop => [Prop.GameID, Prop.PropID, Prop.Market, Prop.PropName, Prop.PropResult, Prop.PropPoints, Prop.PropActor, Prop.OverUnder]));
+    let query = format(`INSERT INTO "Props" ("GameID", "PropID", "MutuallyExclusiveGroupID", "BetType", "Market", "PropName", "PropResult", "PropPoints", "PropActor", "OverUnder") VALUES %L`,
+        props.map(Prop => [Prop.GameID, Prop.PropID, Prop.MutuallyExclusiveGroupID, Prop.BetType, Prop.Market, Prop.PropName, Prop.PropResult, Prop.PropPoints, Prop.PropActor, Prop.OverUnder]));
     query += `ON CONFLICT ("PropID") DO UPDATE SET "GameID"=EXCLUDED."GameID", "Market"=EXCLUDED."Market",
+                                                    "MutuallyExclusiveGroupID"=EXCLUDED."MutuallyExclusiveGroupID", 
+                                                    "BetType"=EXCLUDED."BetType", 
                                                     "PropName"=EXCLUDED."PropName", "PropPoints"=EXCLUDED."PropPoints",
                                                     "PropActor"=EXCLUDED."PropActor", "OverUnder"=EXCLUDED."OverUnder"`
     return executeSql(query, []);

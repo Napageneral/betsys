@@ -1,39 +1,79 @@
 export declare type Type = "Arbitrage" | "PositiveEV";
 
 export class ProfitableBet {
-    ProfitableBetID: number;
-    GameID: string;
-    MutuallyExclusiveGroupID: number;
-    OddIDs: string[];
+    ProfitableBetID: number
     Percent: number;
+    GameID: string;
+    StartDate: Date;
+    EventName: string;
+    Sport: string;
+    MutuallyExclusiveGroupID: number;
+    Market: string;
+    PropIDs: string[];
+    PropNames: string[];
+    OddIDs: string[];
+    Prices: number[];
+    BookNames: string[];
     Type: Type;
-    Timestamp: Date;
+    RetrievalTimestamp: Date;
+    MarketWidth?: number;
+    FairOdds?: number[];
 
     constructor(ProfitableBetID: number,
                 GameID: string,
+                StartDate: Date,
+                EventName: string,
+                Sport: string,
                 MutuallyExclusiveGroupID: number,
+                Market: string,
+                PropIDs: string[],
+                PropNames: string[],
                 OddIDs: string[],
+                Prices: number[],
+                BookNames: string[],
                 Percent: number,
                 Type: Type,
-                Timestamp: Date) {
+                RetrievalTimestamp: Date,
+                MarketWidth?: number,
+                FairOdds?: number[]) {
         this.ProfitableBetID = ProfitableBetID;
         this.GameID = GameID;
+        this.StartDate = StartDate;
+        this.EventName = EventName;
+        this.Sport = Sport;
         this.MutuallyExclusiveGroupID = MutuallyExclusiveGroupID;
+        this.Market = Market;
+        this.PropIDs = PropIDs;
+        this.PropNames = PropNames;
         this.OddIDs = OddIDs;
+        this.Prices = Prices;
+        this.BookNames = BookNames;
         this.Percent = Percent;
         this.Type = Type;
-        this.Timestamp = Timestamp;
+        this.RetrievalTimestamp = RetrievalTimestamp;
+        this.MarketWidth = MarketWidth;
+        this.FairOdds = FairOdds;
     }
 
 }
 
 export interface AddProfitableBetRequest {
     GameID: string;
+    StartDate: Date;
+    EventName: string;
+    Sport: string;
     MutuallyExclusiveGroupID: number;
+    Market: string;
+    PropIDs: string[];
+    PropNames: string[];
     OddIDs: string[];
+    Prices: number[];
+    BookNames: string[];
     Percent: number;
     Type: Type;
-    Timestamp: Date;
+    RetrievalTimestamp: Date;
+    MarketWidth?: number;
+    FairOdds?: number[];
 }
 
 export interface AddProfitableBetResponse {

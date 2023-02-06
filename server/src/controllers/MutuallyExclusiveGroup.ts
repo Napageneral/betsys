@@ -32,7 +32,7 @@ export async function addMutuallyExclusiveGroups(newMutuallyExclusiveGroups: Mut
 export async function getNextMegID(){
     const nextMegIdResponse = await getNextID()
     if (nextMegIdResponse.data){
-        return nextMegIdResponse.data.rows[0].max
+        return Number(nextMegIdResponse.data.rows[0].max)
     }
     return 1
 }
