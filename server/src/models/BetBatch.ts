@@ -53,9 +53,10 @@ export class BetBatch {
                 if (computedProps[0] && computedProps[1]){
                     const computedMeg: ProfitableBet[] = this.computeMeg(game, meg, props[0], props[1], computedProps[0], computedProps[1])
                     if (computedMeg.length > 0){
-                        console.log(computedMeg)
-                        console.log(props)
-                        //addProfitableBets(computedMeg)
+                        // console.log(computedMeg)
+                        // console.log(new Date())
+                        // console.log(props)
+                        addProfitableBets(computedMeg)
                     }
                 }
             }

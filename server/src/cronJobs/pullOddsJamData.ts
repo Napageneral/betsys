@@ -1,7 +1,7 @@
 import {oddsJamApi} from "../oddsJam/OddsJamClient";
 import {Game} from "../../../shared/models/Game";
 import {addAllGames, getStoredGameMap, listGames, updateGame} from "../controllers/Game";
-import {sportsbooks} from "../../../shared/constants";
+import {allSportsbooks, coPlusSportsbooks} from "../../../shared/constants";
 import {Odd} from "../../../shared/models/Odd";
 import {shallowEqual} from "../util/util";
 import {BetType} from "../../../shared/models/MutuallyExclusiveGroup";
@@ -100,7 +100,7 @@ async function getPropsAndOdds(){
         try{
             const oddsResponse = await oddsJamApi.getGameOdds({
                 game_id: betBatchData.getGameIDs(),
-                sportsbook: sportsbooks
+                sportsbook: coPlusSportsbooks
             })
 
             if (oddsResponse.data){
